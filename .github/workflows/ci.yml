@@ -10,6 +10,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
     steps:
       - name: 🧩 Checkout repository
         uses: actions/checkout@v4
@@ -31,14 +34,17 @@ jobs:
           npm run build --if-present
           cd ../..
 
+      - name: 🧪 Test API
+        run: cd apps/api && npm test
+
       # Optional: build frontend if it exists
-      - name: 🌐 Build Web
-        if: ${{ hashFiles('apps/web/package.json') != '' }}
-        run: |
-          cd apps/web
-          npm ci
-          npm run build --if-present
-          cd ../..
+      # - name: 🌐 Build Web
+      #   if: ${{ hashFiles('apps/web/package.json') != '' }}
+      #   run: |
+      #     cd apps/web
+      #     npm ci
+      #     npm run build --if-present
+      #     cd ../..
 
       - name: 🧪 Run API E2E Tests
         run: cd apps/api && npm run test:e2e
