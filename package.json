@@ -1,1 +1,16 @@
-{}
+{
+  "scripts": {
+    "format:api": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:api": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "check:api": "npm run format && npm run lint",
+    "test:api": "jest",
+    "test:e2e:api": "jest --config ./test/jest-e2e.json",
+    "pre-push:api": "cd apps/api && npm run check && npm run test && npm run test:e2e",
+    "test:web": "vitest run",
+    "lint:web": "eslint",
+    "format:web": "prettier",
+    "check:web": "prettier --write . && eslint --fix",
+    "pre-push:web": "cd apps/web && npm run check && npm run test",
+    "pre-push": "npm run pre-push:api && npm run pre-push:web"
+  }
+}
