@@ -27,7 +27,7 @@ npm run test
 
 ## Styling
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+This project uses [Chakra UI](https://chakra-ui.com/) for styling.
 
 ## Linting & Formatting
 
