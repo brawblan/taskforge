@@ -1,11 +1,11 @@
 import { HStack, Link } from '@chakra-ui/react';
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute()({ component: App });
 
 export function App() {
   return (
-    <HStack spacing="24px" padding="24px">
+    <HStack gap="24px" padding="24px">
       <Link href="/" _hover={{ textDecoration: 'none' }}>
         Home
       </Link>
@@ -13,5 +13,5 @@ export function App() {
         Health
       </Link>
     </HStack>
-  )
+  );
 }

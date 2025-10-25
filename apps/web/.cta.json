@@ -1,15 +1,11 @@
 {
   "projectName": "taskforge",
-  "mode": "file-router",
+  "mode": "code-router",
   "typescript": true,
   "packageManager": "npm",
-  "addOnOptions": {
-    "prisma": {
-      "database": "postgres"
-    }
-  },
+  "addOnOptions": {},
   "git": true,
   "version": 1,
   "framework": "react-cra",
-  "chosenAddOns": ["eslint", "start", "prisma", "tanstack-query"]
+  "chosenAddOns": ["eslint", "tanstack-query"]
 }

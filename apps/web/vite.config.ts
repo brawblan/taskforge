@@ -1,21 +1,17 @@
-import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact from '@vitejs/plugin-react'
-import viteTsConfigPaths from 'vite-tsconfig-paths'
+import { defineConfig } from 'vite';
+import viteReact from '@vitejs/plugin-react';
+import viteTsConfigPaths from 'vite-tsconfig-paths';
 
-const config = defineConfig({
+// https://vitejs.dev/config/
+export default defineConfig({
   plugins: [
-    // this is the plugin that enables path aliases
+    viteReact(),
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    tanstackStart(),
-    viteReact(),
   ],
   test: {
     environment: 'jsdom',
     globals: true,
   },
-})
-
-export default config
+});
