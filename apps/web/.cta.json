@@ -2,7 +2,6 @@
   "projectName": "taskforge",
   "mode": "file-router",
   "typescript": true,
-  "tailwind": true,
   "packageManager": "npm",
   "addOnOptions": {
     "prisma": {

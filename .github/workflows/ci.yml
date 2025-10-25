@@ -11,7 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # API Environment Variables
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
+      # Web Environment Variables
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
     steps:
       - name: 🧩 Checkout repository
@@ -25,9 +29,7 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci -C apps/web
 
-      # Optional: build API if it has a build step
       - name: 🏗️ Build API
-        if: ${{ hashFiles('apps/api/package.json') != '' }}
         run: |
           cd apps/api
           npm ci
@@ -37,14 +39,12 @@ jobs:
       - name: 🧪 Test API
         run: cd apps/api && npm test
 
-      # Optional: build frontend if it exists
-      # - name: 🌐 Build Web
-      #   if: ${{ hashFiles('apps/web/package.json') != '' }}
-      #   run: |
-      #     cd apps/web
-      #     npm ci
-      #     npm run build --if-present
-      #     cd ../..
+      - name: 🌐 Build Web
+        run: |
+          cd apps/web
+          npm ci
+          npm run build --if-present
+          cd ../..
 
       - name: 🧪 Run API E2E Tests
         run: cd apps/api && npm run test:e2e
