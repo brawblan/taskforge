@@ -33,4 +33,7 @@ jobs:
           context: ./apps/api # ✅ build only from API directory
           file: ./apps/api/Dockerfile
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:latest
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:${{ github.sha }}
