@@ -2,6 +2,8 @@
 
 > A modular, full-stack task management system built with **NestJS**, **React**, and **TypeScript** — designed to showcase clean architecture, testing discipline, and iterative development.
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/040b0262-96b2-4830-8dc4-9c01d508c51f/deploy-status)](https://app.netlify.com/projects/taskforge-bb/deploys)
+
 [![CI](https://github.com/brawblan/taskforge/actions/workflows/ci.yml/badge.svg)](https://github.com/brawblan/taskforge/actions/workflows/ci.yml)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/brawblan/taskforge/ci.yml?label=tests&logo=jest&logoColor=white)](https://github.com/brawblan/taskforge/actions/workflows/ci.yml)
