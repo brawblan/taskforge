@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: taskforge-api
+    ports:
+      - "4000:4000"
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - ./prisma:/app/prisma
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=${NODE_ENV}
+
+  db:
+    image: postgres:16-alpine
+    container_name: taskforge-db
+    environment:
+      - POSTGRES_DB=taskforge
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
