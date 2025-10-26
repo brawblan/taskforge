@@ -1,0 +1,16 @@
+name: Setup Environment
+description: Common environment setup for CI
+runs:
+  using: "composite"
+  steps:
+    - name: 🧱 Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: latest
+
+    - name: 📂 Cache node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
