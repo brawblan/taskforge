@@ -1,0 +1,36 @@
+name: Build and Push API Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**" # ✅ only run when API changes
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: ⚙️ Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: 🧱 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/api # ✅ build only from API directory
+          file: ./apps/api/Dockerfile
+          push: true
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/api:latest
