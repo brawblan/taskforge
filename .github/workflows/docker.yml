@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "apps/api/**" # ✅ only run when API changes
+      - "apps/api/**"
 
 jobs:
   docker:
@@ -33,4 +33,4 @@ jobs:
           context: ./apps/api # ✅ build only from API directory
           file: ./apps/api/Dockerfile
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/api:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:latest
