@@ -2,6 +2,9 @@ name: Web
 
 on:
   workflow_call:
+  pull_request:
+    paths:
+      - "apps/web/**"
 
 jobs:
   build-and-test-web:
