@@ -11,6 +11,8 @@
     "format:web": "prettier",
     "check:web": "prettier --write . && eslint --fix",
     "pre-push:web": "cd apps/web && npm run check && npm run test",
-    "pre-push": "npm run pre-push:api && npm run pre-push:web"
+    "pre-push": "npm run pre-push:api && npm run pre-push:web",
+    "web": "cd apps/web && npm run dev",
+    "api": "cd apps/api && npm run start:dev"
   }
 }
