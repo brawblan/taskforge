@@ -27,13 +27,17 @@ jobs:
       - name: 🧱 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🏗️ Build and Push Docker Image
+      - name: 🏗️ Build and Push Multi-Arch Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/api # ✅ build only from API directory
+          context: ./apps/api
           file: ./apps/api/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:latest
             ${{ vars.DOCKERHUB_USERNAME }}/taskforge-api:${{ github.sha }}
+
+      # Only run on `main` branch (this comment is for if the `on.branches` is changed)
+      - name: 🚀 Trigger Render Deploy
+        run: curl ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
