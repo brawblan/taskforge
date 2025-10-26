@@ -2,6 +2,9 @@ name: API
 
 on:
   workflow_call:
+  pull_request:
+    paths:
+      - "apps/api/**"
 
 jobs:
   build-and-test-api:
