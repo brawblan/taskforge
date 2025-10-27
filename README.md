@@ -6,6 +6,8 @@
 
 [![CI](https://github.com/brawblan/taskforge/actions/workflows/ci.yml/badge.svg)](https://github.com/brawblan/taskforge/actions/workflows/ci.yml)
 
+[![CI](https://github.com/brawblan/taskforge/actions/workflows/docker.yml/badge.svg)](https://github.com/brawblan/taskforge/actions/workflows/docker.yml)
+
 [![Tests](https://img.shields.io/github/actions/workflow/status/brawblan/taskforge/ci.yml?label=tests&logo=jest&logoColor=white)](https://github.com/brawblan/taskforge/actions/workflows/ci.yml)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
@@ -43,6 +45,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens)](https://jwt.io/)
+[![Docker](https://img.shields.io/badge/Docker-1D63ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 **Testing & CI/CD:**
 [![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)](https://jestjs.io/)
