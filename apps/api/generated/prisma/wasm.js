@@ -92,9 +92,44 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.TodoScalarFieldEnum = {
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  password: 'password',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  ownerId: 'ownerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TaskScalarFieldEnum = {
   id: 'id',
   title: 'title',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  dueDate: 'dueDate',
+  projectId: 'projectId',
+  assigneeId: 'assigneeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ActivityLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  projectId: 'projectId',
+  taskId: 'taskId',
+  action: 'action',
+  message: 'message',
   createdAt: 'createdAt'
 };
 
@@ -108,9 +143,29 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+exports.TaskStatus = exports.$Enums.TaskStatus = {
+  TODO: 'TODO',
+  IN_PROGRESS: 'IN_PROGRESS',
+  DONE: 'DONE',
+  BLOCKED: 'BLOCKED'
+};
+
+exports.TaskPriority = exports.$Enums.TaskPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL'
+};
 
 exports.Prisma.ModelName = {
-  Todo: 'Todo'
+  User: 'User',
+  Project: 'Project',
+  Task: 'Task',
+  ActivityLog: 'ActivityLog'
 };
 /**
  * Create the Client
@@ -155,7 +210,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -164,13 +218,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../generated/prisma\"\n  binaryTargets = [\"native\", \"debian-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Todo {\n  id        Int      @id @default(autoincrement())\n  title     String\n  createdAt DateTime @default(now())\n}\n",
-  "inlineSchemaHash": "4221fd37bcad32d2c33030cad0b3c7aa6b535728091511ffe634be15b7dca0d9",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../generated/prisma\"\n  binaryTargets = [\"native\", \"debian-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum TaskStatus {\n  TODO\n  IN_PROGRESS\n  DONE\n  BLOCKED\n}\n\nenum TaskPriority {\n  LOW\n  MEDIUM\n  HIGH\n  CRITICAL\n}\n\nmodel User {\n  id        String        @id @default(cuid())\n  email     String        @unique\n  password  String\n  name      String\n  projects  Project[]\n  activity  ActivityLog[]\n  createdAt DateTime      @default(now())\n  updatedAt DateTime      @updatedAt\n  Task      Task[]\n}\n\nmodel Project {\n  id          String        @id @default(cuid())\n  name        String\n  description String?\n  owner       User          @relation(fields: [ownerId], references: [id])\n  ownerId     String\n  tasks       Task[]\n  activity    ActivityLog[]\n  createdAt   DateTime      @default(now())\n  updatedAt   DateTime      @updatedAt\n}\n\nmodel Task {\n  id          String        @id @default(cuid())\n  title       String\n  description String?\n  status      TaskStatus    @default(TODO)\n  priority    TaskPriority  @default(MEDIUM)\n  dueDate     DateTime?\n  project     Project       @relation(fields: [projectId], references: [id])\n  projectId   String\n  assignee    User?         @relation(fields: [assigneeId], references: [id])\n  assigneeId  String?\n  activity    ActivityLog[]\n  createdAt   DateTime      @default(now())\n  updatedAt   DateTime      @updatedAt\n}\n\nmodel ActivityLog {\n  id        String   @id @default(cuid())\n  user      User?    @relation(fields: [userId], references: [id])\n  userId    String?\n  project   Project? @relation(fields: [projectId], references: [id])\n  projectId String?\n  task      Task?    @relation(fields: [taskId], references: [id])\n  taskId    String?\n  action    String\n  message   String?\n  createdAt DateTime @default(now())\n}\n",
+  "inlineSchemaHash": "07d3d687bb37049a0ef30e997bd6a8b0ce376706436cf875c59b98e9da7ce176",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Todo\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"projects\",\"kind\":\"object\",\"type\":\"Project\",\"relationName\":\"ProjectToUser\"},{\"name\":\"activity\",\"kind\":\"object\",\"type\":\"ActivityLog\",\"relationName\":\"ActivityLogToUser\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"Task\",\"kind\":\"object\",\"type\":\"Task\",\"relationName\":\"TaskToUser\"}],\"dbName\":null},\"Project\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"owner\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ProjectToUser\"},{\"name\":\"ownerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tasks\",\"kind\":\"object\",\"type\":\"Task\",\"relationName\":\"ProjectToTask\"},{\"name\":\"activity\",\"kind\":\"object\",\"type\":\"ActivityLog\",\"relationName\":\"ActivityLogToProject\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Task\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"TaskStatus\"},{\"name\":\"priority\",\"kind\":\"enum\",\"type\":\"TaskPriority\"},{\"name\":\"dueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"project\",\"kind\":\"object\",\"type\":\"Project\",\"relationName\":\"ProjectToTask\"},{\"name\":\"projectId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"assignee\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"TaskToUser\"},{\"name\":\"assigneeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"activity\",\"kind\":\"object\",\"type\":\"ActivityLog\",\"relationName\":\"ActivityLogToTask\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"ActivityLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ActivityLogToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"project\",\"kind\":\"object\",\"type\":\"Project\",\"relationName\":\"ActivityLogToProject\"},{\"name\":\"projectId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"task\",\"kind\":\"object\",\"type\":\"Task\",\"relationName\":\"ActivityLogToTask\"},{\"name\":\"taskId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"action\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
