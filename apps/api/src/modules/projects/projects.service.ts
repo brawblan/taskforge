@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,6 +30,10 @@ export class ProjectsService {
   }
 
   remove(id: string) {
-    return this.prisma.project.delete({ where: { id } });
+    try {
+      return this.prisma.project.delete({ where: { id } });
+    } catch {
+      throw new NotFoundException(`Project with ID ${id} not found`);
+    }
   }
 }
