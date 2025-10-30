@@ -3,24 +3,43 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FilterTasksDto } from './dto/filter-tasks.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, TaskPriority, TaskStatus } from '@prisma/client';
+import { ActivityLogService } from '../activity-log/activity-log.service';
+
+enum TaskOperator {
+  CREATE = 'CREATE_TASK',
+  UPDATE = 'UPDATE_TASK',
+  DELETE = 'DELETE_TASK',
+}
 
 @Injectable()
 export class TasksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private activity: ActivityLogService,
+  ) {}
 
   async create(dto: CreateTaskDto) {
-    return this.prisma.task.create({
+    const task = await this.prisma.task.create({
       data: {
         title: dto.title,
         description: dto.description,
-        status: dto.status,
-        priority: dto.priority,
+        status: dto.status ?? TaskStatus.TODO,
+        priority: dto.priority ?? TaskPriority.MEDIUM,
         dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
         project: { connect: { id: dto.projectId } },
       },
       include: { project: true },
     });
+
+    await this.activity.record({
+      action: TaskOperator.CREATE,
+      taskId: task.id,
+      projectId: dto.projectId,
+      message: `Task "${task.title}" created.`,
+    });
+
+    return task;
   }
 
   async findAll(filters: FilterTasksDto) {
@@ -62,23 +81,41 @@ export class TasksService {
   }
 
   async update(id: string, dto: UpdateTaskDto) {
-    try {
-      return await this.prisma.task.update({
-        where: { id },
-        data: {
-          ...dto,
-          dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
-        },
-        include: { project: true },
-      });
-    } catch {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+    const old = await this.prisma.task.findUnique({ where: { id } });
+    const updated = await this.prisma.task.update({
+      where: { id },
+      data: {
+        ...dto,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+      },
+      include: { project: true },
+    });
+
+    let message = 'Task updated.';
+    if (dto.status && dto.status !== old?.status) {
+      message = `Status changed from ${old?.status} → ${dto.status}.`;
     }
+
+    await this.activity.record({
+      action: TaskOperator.UPDATE,
+      taskId: id,
+      projectId: updated.projectId,
+      message,
+    });
+
+    return updated;
   }
 
   async remove(id: string) {
     try {
-      return await this.prisma.task.delete({ where: { id } });
+      const deleted = await this.prisma.task.delete({ where: { id } });
+      await this.activity.record({
+        action: TaskOperator.DELETE,
+        taskId: id,
+        projectId: deleted.projectId,
+        message: `Task "${deleted.title}" deleted.`,
+      });
+      return deleted;
     } catch {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
