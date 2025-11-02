@@ -1,4 +1,6 @@
-import { Box, Image, Link, Text } from '@chakra-ui/react';
+import { Box, Image, Text } from '@chakra-ui/react';
+import InternalLink from '@/components/InternalLink';
+import { ROUTES } from '@/routes/routeTree';
 
 export default function Page404() {
   return (
@@ -13,15 +15,15 @@ export default function Page404() {
       <Text fontSize="3xl" mt={4}>
         Oops! This page doesn’t exist.
       </Text>
-      <Link
-        href="/"
-        color="teal.500"
-        _hover={{ color: 'teal.600', textDecoration: 'underline' }}
+      <InternalLink
+        href={ROUTES.HOME}
+        color="blue.500"
+        _hover={{ color: 'blue.600', textDecoration: 'underline' }}
         mt={2}
         fontSize="lg"
       >
         Go back home
-      </Link>
+      </InternalLink>
     </Box>
   );
 }
