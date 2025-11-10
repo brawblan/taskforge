@@ -13,6 +13,7 @@ import {
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { FilterProjectsDto } from './dto/filter-projects.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Projects')
@@ -30,10 +31,9 @@ export class ProjectsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all projects or all projects by ownerId' })
-  @ApiResponse({ status: 404, description: 'Project(s) not found' })
-  findAll(@Query('ownderId') ownerId?: string) {
-    return this.projectsService.findAll(ownerId);
+  @ApiOperation({ summary: 'List all projects (with filters & pagination)' })
+  findAll(@Query() filters: FilterProjectsDto) {
+    return this.projectsService.findAll(filters);
   }
 
   @Get(':id')

@@ -43,12 +43,27 @@ export class TasksService {
   }
 
   async findAll(filters: FilterTasksDto) {
-    const { status, priority, dueDate, page = 1, limit = 10 } = filters;
+    const {
+      projectId,
+      userId,
+      status,
+      priority,
+      dueDate,
+      days,
+      page = 1,
+      limit = 10,
+    } = filters;
 
     const where: Prisma.TaskWhereInput = {};
+    if (projectId) where.projectId = projectId;
+    if (userId) where.assigneeId = userId;
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (dueDate) where.dueDate = { lte: new Date(dueDate) };
+    if (days) {
+      const timePeriodAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      where.updatedAt = { gt: timePeriodAgo };
+    }
 
     const tasks = await this.prisma.task.findMany({
       where,

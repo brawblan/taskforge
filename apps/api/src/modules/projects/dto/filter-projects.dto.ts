@@ -2,25 +2,15 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class FilterActivityDto {
-  @ApiPropertyOptional({ example: 'taskId_123' })
+export class FilterProjectsDto {
+  @ApiPropertyOptional({ example: 'user-123' })
   @IsOptional()
   @IsString()
-  taskId?: string;
-
-  @ApiPropertyOptional({ example: 'projectId_123' })
-  @IsOptional()
-  @IsString()
-  projectId?: string;
-
-  @ApiPropertyOptional({ example: 'userId_123' })
-  @IsOptional()
-  @IsString()
-  userId?: string;
+  ownerId?: string;
 
   @ApiPropertyOptional({
     example: 7,
-    description: 'Filter activity within the last N days',
+    description: 'Filter projects updated within the last N days',
   })
   @IsOptional()
   @Type(() => Number)

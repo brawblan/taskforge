@@ -13,20 +13,40 @@ export class ActivityLogService {
   }
 
   async findAllByEntity(filters: FilterActivityDto) {
+    const { taskId, projectId, userId, days, page = 1, limit = 10 } = filters;
+
     const where: Prisma.ActivityLogWhereInput = {};
 
-    if (filters.taskId) where.taskId = filters.taskId;
-    if (filters.projectId) where.projectId = filters.projectId;
-    if (filters.userId) where.userId = filters.userId;
+    if (taskId) where.taskId = taskId;
+    if (projectId) where.projectId = projectId;
+    if (userId) where.userId = userId;
+    if (days) {
+      const timePeriodAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      where.createdAt = { gt: timePeriodAgo };
+    }
 
-    return this.prisma.activityLog.findMany({
+    const activities = await this.prisma.activityLog.findMany({
       where,
       include: {
         user: true,
         task: true,
         project: true,
       },
+      skip: (page - 1) * limit,
+      take: limit,
       orderBy: { createdAt: 'desc' },
     });
+
+    const total = await this.prisma.activityLog.count({ where });
+
+    return {
+      data: activities,
+      meta: {
+        page: page,
+        limit: limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }
