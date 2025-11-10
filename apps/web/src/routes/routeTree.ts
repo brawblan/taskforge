@@ -35,7 +35,7 @@ const learnMoreRoute = createRoute({
   component: LearnMore,
 });
 
-const protectedRoute = createRoute({
+const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.DASHBOARD,
   component: Dashboard,
@@ -59,6 +59,6 @@ const healthRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   learnMoreRoute,
-  protectedRoute,
+  dashboardRoute,
   healthRoute,
 ]);

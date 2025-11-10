@@ -4,7 +4,7 @@ import { ROUTES } from '@/routes/routeTree';
 
 export default function Footer() {
   return (
-    <Box height="10vh" as="footer" borderTopWidth="1px">
+    <Box height="fit-content" as="footer" borderTopWidth="1px" bottom="0">
       <Flex
         height="100%"
         justifyContent="center"

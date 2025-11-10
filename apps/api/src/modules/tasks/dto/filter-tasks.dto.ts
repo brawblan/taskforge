@@ -1,9 +1,26 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsDateString, IsInt, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsDateString,
+  IsInt,
+  Min,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { TaskPriority, TaskStatus } from '@prisma/client';
 
 export class FilterTasksDto {
+  @ApiPropertyOptional({ example: 'project-123' })
+  @IsOptional()
+  @IsString()
+  projectId?: string;
+
+  @ApiPropertyOptional({ example: 'user-123' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
   @ApiPropertyOptional({ enum: TaskStatus })
   @IsOptional()
   @IsEnum(TaskStatus)
@@ -18,6 +35,16 @@ export class FilterTasksDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  @ApiPropertyOptional({
+    example: 7,
+    description: 'Filter tasks updated within the last N days',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  days?: number;
 
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()

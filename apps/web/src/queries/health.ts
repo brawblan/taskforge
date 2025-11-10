@@ -1,11 +1,8 @@
-export const getHealthQueryOptions = () => ({
-  queryKey: ['health'],
-  queryFn: async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/health`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch post');
-    }
+import { QUERY_KEYS } from './KEYS';
+import { GET } from '@/utilities/fetch';
 
-    return await res.json();
-  },
+export const getHealthQueryOptions = () => ({
+  queryKey: [QUERY_KEYS.HEALTH],
+  queryFn: async () =>
+    await GET<{ ok: boolean; timestamp: string; message: string }>('/health'),
 });
