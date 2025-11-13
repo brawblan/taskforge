@@ -3,6 +3,9 @@ import { rootRoute } from './__root';
 import Dashboard from './pages/Dashboard/Dashboard';
 import LearnMore from './pages/LearnMore/LearnMore';
 import Health from './pages/Health/Health';
+import Projects from './pages/Projects/Projects';
+import Tasks from './pages/Tasks/Tasks';
+import ActivityLog from './pages/ActivityLog/ActivityLog';
 import type { RouterContext } from '@/types/router';
 import Landing from '@/routes/pages/Landing/Landing';
 import { getHealthQueryOptions } from '@/queries/health';
@@ -10,6 +13,9 @@ import { getHealthQueryOptions } from '@/queries/health';
 export const ROUTES = Object.freeze({
   HOME: '/',
   DASHBOARD: '/dashboard',
+  PROJECTS: '/projects',
+  TASKS: '/tasks',
+  ACTIVITY_LOG: '/activity-log',
   LEARN_MORE: '/learn-more',
   HEALTH: '/health',
 });
@@ -17,11 +23,12 @@ export const ROUTES = Object.freeze({
 // rootRoute
 // |_ Landing /home
 // |_ LearnMore /learn-more
-// |_ SignInPage /signin
-// |_ SignUpPage /signup
+// |_ SignIn/signin
+// |_ SignUp/signup
 //
 // authRoute
-// |_ DashboardPage /dashboard
+// |_ Dashboard /dashboard
+// |_ Projects /projects
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -39,6 +46,24 @@ const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.DASHBOARD,
   component: Dashboard,
+});
+
+const projectsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: ROUTES.PROJECTS,
+  component: Projects,
+});
+
+const tasksRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: ROUTES.TASKS,
+  component: Tasks,
+});
+
+const activityLogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: ROUTES.ACTIVITY_LOG,
+  component: ActivityLog,
 });
 
 const healthRoute = createRoute({
@@ -60,5 +85,8 @@ export const routeTree = rootRoute.addChildren([
   indexRoute,
   learnMoreRoute,
   dashboardRoute,
+  projectsRoute,
+  tasksRoute,
+  activityLogRoute,
   healthRoute,
 ]);

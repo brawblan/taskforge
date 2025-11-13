@@ -70,7 +70,7 @@ export default function Header() {
                       Dashboard
                     </InternalLink>
                     <InternalLink
-                      href={ROUTES.DASHBOARD}
+                      href={ROUTES.PROJECTS}
                       fontWeight="bold"
                       _hover={{ textDecorationColor: 'white' }}
                       onClick={() => isOpen(false)}
@@ -78,7 +78,7 @@ export default function Header() {
                       Projects
                     </InternalLink>
                     <InternalLink
-                      href={ROUTES.DASHBOARD}
+                      href={ROUTES.TASKS}
                       fontWeight="bold"
                       _hover={{ textDecorationColor: 'white' }}
                       onClick={() => isOpen(false)}
@@ -86,7 +86,7 @@ export default function Header() {
                       Tasks
                     </InternalLink>
                     <InternalLink
-                      href={ROUTES.DASHBOARD}
+                      href={ROUTES.ACTIVITY_LOG}
                       fontWeight="bold"
                       _hover={{ textDecorationColor: 'white' }}
                       onClick={() => isOpen(false)}

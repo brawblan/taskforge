@@ -3,13 +3,11 @@ import {
   Flex,
   Grid,
   Heading,
-  Icon,
   Spinner,
   Table,
   Text,
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
-import { FiFolderPlus } from 'react-icons/fi';
 import {
   MdOutlineAssignment,
   MdOutlineHistory,
@@ -18,17 +16,18 @@ import {
 import { useEffect, useState } from 'react';
 import type {
   Activity,
+  ActivityResponse,
   Project,
-  RecentActivityResponse,
-  RecentProjectsResponse,
-  RecentTasksResponse,
+  ProjectsResponse,
   Task,
+  TasksResponse,
 } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { GET } from '@/utilities/fetch';
 import CreateProjectDialog from '@/components/CreateProjectDialog';
 import { subscribe, unsubscribe } from '@/utilities/events';
 import OverviewCard from '@/components/OverviewCard';
+import { EmptyState } from '@/components/EmptyState';
 
 export enum OVERVIEW_CARD_LABELS {
   RECENT_PROJECTS = 'Recent Projects',
@@ -43,8 +42,7 @@ export default function Dashboard() {
   const projectsQuery = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS],
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return await GET<RecentProjectsResponse>(
+      return await GET<ProjectsResponse>(
         `/projects?days=7&ownerId=${import.meta.env.VITE_USER_ID}`,
       );
     },
@@ -53,19 +51,17 @@ export default function Dashboard() {
   const tasksQuery = useQuery({
     queryKey: [QUERY_KEYS.TASKS],
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return await GET<RecentTasksResponse>(
+      return await GET<TasksResponse>(
         `/tasks?days=7&userId=${import.meta.env.VITE_USER_ID}`,
       );
     },
-    enabled: !!projectsQuery.data?.data[0]?.id,
+    // enabled: !!projectsQuery.data?.data[0]?.id,
   });
 
   const activityQuery = useQuery({
     queryKey: [QUERY_KEYS.ACTIVITY],
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return await GET<RecentActivityResponse>(
+      return await GET<ActivityResponse>(
         `/activity?userId=${import.meta.env.VITE_USER_ID}&days=7`,
       );
     },
@@ -182,7 +178,11 @@ function ProjectsTable({ data }: { data: Array<Project> }) {
         {data.map((project) => (
           <Table.Row
             key={project.id}
-            _hover={{ bg: 'gray.50', _dark: { bg: 'gray.800' } }}
+            _hover={{
+              bg: 'gray.50',
+              _dark: { bg: 'gray.800' },
+              cursor: 'pointer',
+            }}
           >
             <Table.Cell fontWeight="medium">{project.name}</Table.Cell>
             <Table.Cell>{project.description ?? '-'}</Table.Cell>
@@ -211,7 +211,11 @@ function TasksTable({ data }: { data: Array<Task> }) {
         {data.map((task) => (
           <Table.Row
             key={task.id}
-            _hover={{ bg: 'gray.50', _dark: { bg: 'gray.800' } }}
+            _hover={{
+              bg: 'gray.50',
+              _dark: { bg: 'gray.800' },
+              cursor: 'pointer',
+            }}
           >
             <Table.Cell fontWeight="medium">{task.title}</Table.Cell>
             <Table.Cell>{task.status}</Table.Cell>
@@ -240,7 +244,11 @@ function ActivityTable({ data }: { data: Array<Activity> }) {
         {data.map((activity) => (
           <Table.Row
             key={activity.id}
-            _hover={{ bg: 'gray.50', _dark: { bg: 'gray.800' } }}
+            _hover={{
+              bg: 'gray.50',
+              _dark: { bg: 'gray.800' },
+              cursor: 'pointer',
+            }}
           >
             <Table.Cell fontWeight="medium">{activity.action}</Table.Cell>
             <Table.Cell>{activity.message ?? '-'}</Table.Cell>
@@ -251,45 +259,5 @@ function ActivityTable({ data }: { data: Array<Activity> }) {
         ))}
       </Table.Body>
     </Table.Root>
-  );
-}
-
-/* Empty State Component */
-function EmptyState({ type }: { type: OVERVIEW_CARD_LABELS }) {
-  const config = {
-    [OVERVIEW_CARD_LABELS.RECENT_PROJECTS]: {
-      title: 'No projects yet',
-      message: 'Create your first project to get started with TaskForge.',
-    },
-    [OVERVIEW_CARD_LABELS.RECENT_TASKS]: {
-      title: 'No recent tasks',
-      message: 'No tasks have been updated in the last 7 days.',
-    },
-    [OVERVIEW_CARD_LABELS.RECENT_ACTIVITY]: {
-      title: 'No recent activity',
-      message: 'No activity has been recorded in the last 7 days.',
-    },
-  };
-
-  const { title, message } = config[type];
-
-  return (
-    <Flex
-      direction="column"
-      align="center"
-      justify="center"
-      borderWidth="1px"
-      borderRadius="2xl"
-      py={16}
-      shadow="sm"
-    >
-      <Icon as={FiFolderPlus} boxSize={10} color="teal.500" mb={4} />
-      <Heading size="md" mb={2}>
-        {title}
-      </Heading>
-      <Text color="gray.500" mb={6}>
-        {message}
-      </Text>
-    </Flex>
   );
 }

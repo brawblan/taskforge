@@ -1,7 +1,7 @@
 export interface Project {
   id: string;
   name: string;
-  description: string | null;
+  description?: string;
   updatedAt: string;
   createdAt: string;
   ownerId: string;
@@ -32,14 +32,20 @@ export interface Activity {
   createdAt: string;
 }
 
-export interface RecentProjectsResponse {
-  data: Array<Project>;
+interface PageMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
-export interface RecentTasksResponse {
-  data: Array<Task>;
+interface DataResponse<T> {
+  data: Array<T>;
+  meta: PageMeta;
 }
 
-export interface RecentActivityResponse {
-  data: Array<Activity>;
-}
+export interface ProjectsResponse extends DataResponse<Project> {}
+
+export interface TasksResponse extends DataResponse<Task> {}
+
+export interface ActivityResponse extends DataResponse<Activity> {}
