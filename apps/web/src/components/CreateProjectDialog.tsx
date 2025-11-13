@@ -1,18 +1,10 @@
-import {
-  Button,
-  CloseButton,
-  Dialog,
-  Field,
-  Input,
-  Portal,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react';
+import { Button, CloseButton, Dialog, Portal } from '@chakra-ui/react';
 import { z } from 'zod';
 import { useForm } from '@tanstack/react-form';
 import { FiFolderPlus } from 'react-icons/fi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import ProjectFormFields from './ProjectFormFields';
 import { toaster } from '@/components/ui/toaster';
 import { POST } from '@/utilities/fetch';
 
@@ -20,6 +12,11 @@ const projectSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters long'),
   description: z.string().optional(),
 });
+
+interface CreateProject {
+  name: string;
+  description?: string;
+}
 
 export default function CreateProjectDialog() {
   const [open, setOpen] = useState(false);
@@ -47,10 +44,6 @@ export default function CreateProjectDialog() {
   });
   const { mutateAsync, isPending } = projectMutation;
 
-  interface CreateProject {
-    name: string;
-    description?: string;
-  }
   const defaultProject: CreateProject = { name: '' };
 
   const form = useForm({
@@ -80,40 +73,18 @@ export default function CreateProjectDialog() {
             >
               <Dialog.Header>Create New Project</Dialog.Header>
               <Dialog.Body>
-                <VStack gap={4}>
-                  <form.Field
-                    name="name"
-                    children={(field) => (
-                      <Field.Root invalid={!!field.state.meta.errors.length}>
-                        <Field.Label>Project Name</Field.Label>
-                        <Input
-                          placeholder="My Awesome Project"
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
+                <form.Field name="name">
+                  {(field) => (
+                    <form.Field name="description">
+                      {(descField) => (
+                        <ProjectFormFields
+                          nameField={field}
+                          descriptionField={descField}
                         />
-                        <Field.ErrorText>
-                          {field.state.meta.errors.map((error) => (
-                            <em role="alert">{error?.message ?? ''}</em>
-                          ))}
-                        </Field.ErrorText>
-                      </Field.Root>
-                    )}
-                  />
-
-                  <form.Field
-                    name="description"
-                    children={(field) => (
-                      <Field.Root>
-                        <Field.Label>Description</Field.Label>
-                        <Textarea
-                          placeholder="Describe what this project is for..."
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                        />
-                      </Field.Root>
-                    )}
-                  />
-                </VStack>
+                      )}
+                    </form.Field>
+                  )}
+                </form.Field>
               </Dialog.Body>
 
               <Dialog.Footer>

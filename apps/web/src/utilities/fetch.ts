@@ -1,3 +1,6 @@
+const simulatedServerCall = async (delay: number) =>
+  await new Promise((resolve) => setTimeout(resolve, delay));
+
 const BASE_URL =
   import.meta.env.ENV !== 'development'
     ? import.meta.env.VITE_API_URL
@@ -21,6 +24,7 @@ export const GET = async <T>(
   endpoint: string,
   isProtected = false,
 ): Promise<T> => {
+  simulatedServerCall(500);
   const token = getToken();
 
   if (isProtected && !token) throw new Error('No token found');
@@ -44,13 +48,15 @@ export const GET = async <T>(
  * @returns
  */
 export const PATCH = async <T>(endpoint: string, body: T): Promise<T> => {
-  const token = getToken();
+  simulatedServerCall(500);
+  // const token = getToken();
 
-  if (!token) throw new Error('No token found');
+  // if (!token) throw new Error('No token found');
 
   return fetch(`${BASE_URL}${endpoint}`, {
     method: 'PATCH',
-    headers: privateHeaders(token),
+    // headers: privateHeaders(token),
+    headers: publicHeaders,
     body: JSON.stringify(body),
   })
     .then((response) => response.json())
@@ -62,16 +68,18 @@ export const PATCH = async <T>(endpoint: string, body: T): Promise<T> => {
 export const POST = async <T>(
   endpoint: string,
   body?: T,
-  isProtected = false,
+  // isProtected = false,
 ): Promise<T> => {
-  const token = getToken();
+  simulatedServerCall(500);
+  // const token = getToken();
 
-  if (isProtected && !token) throw new Error('No token found');
+  // if (isProtected && !token) throw new Error('No token found');
 
   try {
     const payload = {
       method: 'POST',
-      headers: isProtected ? privateHeaders(token!) : publicHeaders,
+      headers: publicHeaders,
+      // headers: isProtected ? privateHeaders(token!) : publicHeaders,
     };
 
     if (body) {
@@ -91,16 +99,18 @@ export const POST = async <T>(
 export const PUT = async <T>(
   endpoint: string,
   body: T,
-  isProtected = false,
+  // isProtected = false,
 ): Promise<T> => {
-  const token = getToken();
+  simulatedServerCall(500);
+  // const token = getToken();
 
-  if (isProtected && !token) throw new Error('No token found');
+  // if (isProtected && !token) throw new Error('No token found');
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: isProtected ? privateHeaders(token!) : publicHeaders,
+      headers: publicHeaders,
+      // headers: isProtected ? privateHeaders(token!) : publicHeaders,
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -117,13 +127,15 @@ export const PUT = async <T>(
  * @returns
  */
 export const DELETE = async <T>(endpoint: string): Promise<T> => {
-  const token = getToken();
+  simulatedServerCall(500);
+  // const token = getToken();
 
-  if (!token) throw new Error('No token found');
+  // if (!token) throw new Error('No token found');
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'DELETE',
-    headers: privateHeaders(token),
+    headers: publicHeaders,
+    // headers: privateHeaders(token),
   });
   return await response.json();
 };
