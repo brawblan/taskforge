@@ -43,7 +43,7 @@ export default function Dashboard() {
     queryKey: [QUERY_KEYS.PROJECTS],
     queryFn: async () => {
       return await GET<ProjectsResponse>(
-        `/projects?days=7&ownerId=${import.meta.env.VITE_USER_ID}`,
+        `/projects?ownerId=${import.meta.env.VITE_USER_ID}`,
       );
     },
   });
@@ -52,17 +52,16 @@ export default function Dashboard() {
     queryKey: [QUERY_KEYS.TASKS],
     queryFn: async () => {
       return await GET<TasksResponse>(
-        `/tasks?days=7&userId=${import.meta.env.VITE_USER_ID}`,
+        `/tasks?userId=${import.meta.env.VITE_USER_ID}`,
       );
     },
-    // enabled: !!projectsQuery.data?.data[0]?.id,
   });
 
   const activityQuery = useQuery({
     queryKey: [QUERY_KEYS.ACTIVITY],
     queryFn: async () => {
       return await GET<ActivityResponse>(
-        `/activity?userId=${import.meta.env.VITE_USER_ID}&days=7`,
+        `/activity?userId=${import.meta.env.VITE_USER_ID}`,
       );
     },
   });

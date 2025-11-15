@@ -32,6 +32,7 @@ model User {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   tasks     Task[]
+  comments  Comment[]
 }
 
 model Project {
@@ -42,6 +43,7 @@ model Project {
   ownerId     String
   tasks       Task[]
   activity    ActivityLog[]
+  comments    Comment[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
@@ -58,6 +60,7 @@ model Task {
   assignee    User?         @relation(fields: [assigneeId], references: [id])
   assigneeId  String?
   activity    ActivityLog[]
+  comments    Comment[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
@@ -75,4 +78,17 @@ model ActivityLog {
   oldValue  Json?
   newValue  Json?
   createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

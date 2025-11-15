@@ -6,6 +6,9 @@ import { PrismaModule } from '@/modules/prisma/prisma.module';
 import { ProjectsModule } from '@/modules/projects/projects.module';
 import { TasksModule } from '@/modules/tasks/tasks.module';
 import { UsersModule } from '@/modules/users/users.module';
+import { CommentsService } from './modules/comments/comments.service';
+import { CommentsController } from './modules/comments/comments.controller';
+import { CommentsModule } from './modules/comments/comments.module';
 
 @Global()
 @Module({
@@ -17,6 +20,9 @@ import { UsersModule } from '@/modules/users/users.module';
     ProjectsModule,
     TasksModule,
     UsersModule,
+    CommentsModule,
   ],
+  providers: [CommentsService],
+  controllers: [CommentsController],
 })
 export class AppModule {}

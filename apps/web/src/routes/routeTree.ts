@@ -6,6 +6,8 @@ import Health from './pages/Health/Health';
 import Projects from './pages/Projects/Projects';
 import Tasks from './pages/Tasks/Tasks';
 import ActivityLog from './pages/ActivityLog/ActivityLog';
+import ProjectPage from './pages/Project/Project';
+import TaskPage from './pages/Task/Task';
 import type { RouterContext } from '@/types/router';
 import Landing from '@/routes/pages/Landing/Landing';
 import { getHealthQueryOptions } from '@/queries/health';
@@ -14,7 +16,9 @@ export const ROUTES = Object.freeze({
   HOME: '/',
   DASHBOARD: '/dashboard',
   PROJECTS: '/projects',
+  PROJECT: '/project',
   TASKS: '/tasks',
+  TASK: '/task',
   ACTIVITY_LOG: '/activity-log',
   LEARN_MORE: '/learn-more',
   HEALTH: '/health',
@@ -54,10 +58,22 @@ const projectsRoute = createRoute({
   component: Projects,
 });
 
+const projectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: `${ROUTES.PROJECT}/$id`,
+  component: ProjectPage,
+});
+
 const tasksRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.TASKS,
   component: Tasks,
+});
+
+const taskRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: `${ROUTES.TASK}/$id`,
+  component: TaskPage,
 });
 
 const activityLogRoute = createRoute({
@@ -86,7 +102,9 @@ export const routeTree = rootRoute.addChildren([
   learnMoreRoute,
   dashboardRoute,
   projectsRoute,
+  projectRoute,
   tasksRoute,
+  taskRoute,
   activityLogRoute,
   healthRoute,
 ]);

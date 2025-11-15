@@ -1,21 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { Box, Flex, Heading, Spinner, Table, Text } from '@chakra-ui/react';
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { OVERVIEW_CARD_LABELS } from '../Dashboard/Dashboard';
-import type { Project, ProjectsResponse } from '@/types/dashboard';
+import type { ProjectsResponse } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { GET } from '@/utilities/fetch';
 import CreateProjectDialog from '@/components/CreateProjectDialog';
 import { EmptyState } from '@/components/EmptyState';
 import { Pagination } from '@/components/ui/pagination';
-import EditProjectDialog from '@/components/EditProjectDialog';
 
 export default function Projects() {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<Partial<Project>>({
-    name: '',
-    description: '',
-  });
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -67,23 +62,57 @@ export default function Projects() {
                   {data.data.map((project) => (
                     <Table.Row
                       key={project.id}
-                      role="button"
-                      onClick={() => {
-                        setSelectedProjectId(project);
-                        setIsEditDialogOpen(true);
-                      }}
                       _hover={{
                         bg: 'gray.50',
                         _dark: { bg: 'gray.800' },
-                        cursor: 'pointer',
+                      }}
+                      css={{
+                        '& td': {
+                          padding: 0,
+                        },
                       }}
                     >
                       <Table.Cell fontWeight="medium">
-                        {project.name}
+                        <Link
+                          to="/project/$id"
+                          params={{ id: project.id }}
+                          style={{
+                            display: 'block',
+                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                          }}
+                        >
+                          {project.name}
+                        </Link>
                       </Table.Cell>
-                      <Table.Cell>{project.description ?? '-'}</Table.Cell>
                       <Table.Cell>
-                        {new Date(project.updatedAt).toLocaleDateString()}
+                        <Link
+                          to="/project/$id"
+                          params={{ id: project.id }}
+                          style={{
+                            display: 'block',
+                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                          }}
+                        >
+                          {project.description ?? '-'}
+                        </Link>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Link
+                          to="/project/$id"
+                          params={{ id: project.id }}
+                          style={{
+                            display: 'block',
+                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                          }}
+                        >
+                          {new Date(project.updatedAt).toLocaleDateString()}
+                        </Link>
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -103,12 +132,6 @@ export default function Projects() {
           )
         )}
       </Flex>
-
-      <EditProjectDialog
-        project={selectedProjectId as Project}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-      />
     </>
   );
 }

@@ -20,6 +20,21 @@ export interface Task {
   dueDate: string | null;
 }
 
+export interface Comment {
+  id: string;
+  content: string;
+  userId: string;
+  projectId?: string | null;
+  taskId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 export interface Activity {
   id: string;
   action: string;
