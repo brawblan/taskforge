@@ -7,6 +7,7 @@ async function main() {
   console.log('🌱 Seeding TaskForge demo data...');
 
   // --- 🔄 Clear existing data ---
+  await prisma.comment.deleteMany();
   await prisma.activityLog.deleteMany();
   await prisma.task.deleteMany();
   await prisma.project.deleteMany();
@@ -92,6 +93,43 @@ async function main() {
   );
 
   console.log(`📜 Created ${activityLogs.length} activity logs`);
+
+  // --- 💬 Create comments (for projects and tasks) ---
+  const projectComments = await prisma.$transaction(
+    projects.flatMap((project) =>
+      Array.from({ length: faker.number.int({ min: 2, max: 5 }) }).map(() =>
+        prisma.comment.create({
+          data: {
+            content: faker.lorem.paragraph(),
+            userId: user.id,
+            projectId: project.id,
+            createdAt: faker.date.recent({ days: 20 }),
+            updatedAt: faker.date.recent({ days: 10 }),
+          },
+        }),
+      ),
+    ),
+  );
+
+  console.log(`💬 Created ${projectComments.length} project comments`);
+
+  const taskComments = await prisma.$transaction(
+    faker.helpers.arrayElements(tasks, 20).flatMap((task) =>
+      Array.from({ length: faker.number.int({ min: 1, max: 4 }) }).map(() =>
+        prisma.comment.create({
+          data: {
+            content: faker.lorem.sentence(),
+            userId: user.id,
+            taskId: task.id,
+            createdAt: faker.date.recent({ days: 15 }),
+            updatedAt: faker.date.recent({ days: 5 }),
+          },
+        }),
+      ),
+    ),
+  );
+
+  console.log(`💬 Created ${taskComments.length} task comments`);
   console.log('✅ Seeding complete!');
 }
 
