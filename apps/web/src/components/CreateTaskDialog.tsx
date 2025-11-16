@@ -28,9 +28,9 @@ import {
 const taskSchema = z.object({
   title: z.string().min(2, 'Task title must be at least 2 characters long'),
   description: z.string().optional(),
-  status: z.nativeEnum(TaskStatus),
-  priority: z.nativeEnum(TaskPriority),
-  projectId: z.string().optional(),
+  status: z.enum(TaskStatus),
+  priority: z.enum(TaskPriority),
+  projectId: z.string(),
   dueDate: z.string().optional(),
 });
 
@@ -48,7 +48,7 @@ const priorityCollection = createListCollection({
   })),
 });
 
-export default function CreateTaskDialog() {
+export default function CreateTaskDialog({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -77,11 +77,12 @@ export default function CreateTaskDialog() {
       description?: string;
       status: string;
       priority: string;
-      projectId?: string;
+      projectId: string;
       dueDate?: string;
     }) => POST('/tasks', value),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
       form.reset();
       toaster.success({
         title: 'Task created',
@@ -104,13 +105,14 @@ export default function CreateTaskDialog() {
     description?: string;
     status: TaskStatus;
     priority: TaskPriority;
-    projectId?: string;
+    projectId: string;
     dueDate?: string;
   }
   const defaultTask: CreateTask = {
     title: '',
     status: TaskStatus.TODO,
     priority: TaskPriority.MEDIUM,
+    projectId: projectId,
   };
 
   const form = useForm({
@@ -257,43 +259,45 @@ export default function CreateTaskDialog() {
                     )}
                   />
 
-                  <form.Field
-                    name="projectId"
-                    children={(field) => (
-                      <Field.Root>
-                        <Field.Label>Project (Optional)</Field.Label>
-                        <Select.Root
-                          positioning={{
-                            strategy: 'fixed',
-                            hideWhenDetached: true,
-                          }}
-                          collection={projectCollection}
-                          value={field.state.value ? [field.state.value] : []}
-                          onValueChange={(e) =>
-                            field.handleChange(e.value[0] || undefined)
-                          }
-                        >
-                          <Select.Control>
-                            <Select.Trigger>
-                              <Select.ValueText placeholder="Select project" />
-                            </Select.Trigger>
-                            <Select.IndicatorGroup>
-                              <Select.Indicator />
-                            </Select.IndicatorGroup>
-                          </Select.Control>
-                          <Select.Positioner>
-                            <Select.Content>
-                              {projectCollection.items.map((item) => (
-                                <Select.Item key={item.value} item={item}>
-                                  {item.label}
-                                </Select.Item>
-                              ))}
-                            </Select.Content>
-                          </Select.Positioner>
-                        </Select.Root>
-                      </Field.Root>
-                    )}
-                  />
+                  {!projectId && (
+                    <form.Field
+                      name="projectId"
+                      children={(field) => (
+                        <Field.Root>
+                          <Field.Label>Project (Optional)</Field.Label>
+                          <Select.Root
+                            positioning={{
+                              strategy: 'fixed',
+                              hideWhenDetached: true,
+                            }}
+                            collection={projectCollection}
+                            value={field.state.value ? [field.state.value] : []}
+                            onValueChange={(e) =>
+                              field.handleChange(e.value[0])
+                            }
+                          >
+                            <Select.Control>
+                              <Select.Trigger>
+                                <Select.ValueText placeholder="Select project" />
+                              </Select.Trigger>
+                              <Select.IndicatorGroup>
+                                <Select.Indicator />
+                              </Select.IndicatorGroup>
+                            </Select.Control>
+                            <Select.Positioner>
+                              <Select.Content>
+                                {projectCollection.items.map((item) => (
+                                  <Select.Item key={item.value} item={item}>
+                                    {item.label}
+                                  </Select.Item>
+                                ))}
+                              </Select.Content>
+                            </Select.Positioner>
+                          </Select.Root>
+                        </Field.Root>
+                      )}
+                    />
+                  )}
 
                   <form.Field
                     name="dueDate"
