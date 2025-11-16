@@ -23,12 +23,14 @@ import { FiChevronLeft } from 'react-icons/fi';
 import type { Comment, Project, TasksResponse } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
+import CreateTaskDialog from '@/components/CreateTaskDialog';
+import { ROUTES } from '@/routes/routeTree';
 
 const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
 
 export default function ProjectPage() {
-  const { id: projectId } = useParams({ strict: false });
+  const { id: projectId = '' } = useParams({ strict: false });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -136,7 +138,7 @@ export default function ProjectPage() {
           as={FiChevronLeft}
           size="sm"
           variant="ghost"
-          onClick={() => navigate({ to: '/projects' })}
+          onClick={() => navigate({ to: ROUTES.DASHBOARD })}
         />
       </Box>
 
@@ -216,9 +218,10 @@ export default function ProjectPage() {
 
       {/* Tasks Table */}
       <Box>
-        <Heading size="md" mb={4}>
-          Tasks
-        </Heading>
+        <Flex justify="space-between" align="center" mb={4}>
+          <Heading size="md">Tasks</Heading>
+          <CreateTaskDialog projectId={projectId} />
+        </Flex>
         {tasksLoading ? (
           <Spinner />
         ) : tasksData && tasksData.data.length > 0 ? (
@@ -247,22 +250,62 @@ export default function ProjectPage() {
                     }}
                   >
                     <Table.Cell fontWeight="medium">
-                      <TanstackLink to="/task/$id" params={{ id: task.id }}>
+                      <TanstackLink
+                        to="/task/$id"
+                        params={{ id: task.id }}
+                        style={{
+                          display: 'block',
+                          padding:
+                            'var(--chakra-space-3) var(--chakra-space-4)',
+                          textDecoration: 'none',
+                          color: 'inherit',
+                        }}
+                      >
                         {task.title}
                       </TanstackLink>
                     </Table.Cell>
                     <Table.Cell>
-                      <TanstackLink to="/task/$id" params={{ id: task.id }}>
+                      <TanstackLink
+                        to="/task/$id"
+                        params={{ id: task.id }}
+                        style={{
+                          display: 'block',
+                          padding:
+                            'var(--chakra-space-3) var(--chakra-space-4)',
+                          textDecoration: 'none',
+                          color: 'inherit',
+                        }}
+                      >
                         {task.status}
                       </TanstackLink>
                     </Table.Cell>
                     <Table.Cell>
-                      <TanstackLink to="/task/$id" params={{ id: task.id }}>
+                      <TanstackLink
+                        to="/task/$id"
+                        params={{ id: task.id }}
+                        style={{
+                          display: 'block',
+                          padding:
+                            'var(--chakra-space-3) var(--chakra-space-4)',
+                          textDecoration: 'none',
+                          color: 'inherit',
+                        }}
+                      >
                         {task.priority}
                       </TanstackLink>
                     </Table.Cell>
                     <Table.Cell>
-                      <TanstackLink to="/task/$id" params={{ id: task.id }}>
+                      <TanstackLink
+                        to="/task/$id"
+                        params={{ id: task.id }}
+                        style={{
+                          display: 'block',
+                          padding:
+                            'var(--chakra-space-3) var(--chakra-space-4)',
+                          textDecoration: 'none',
+                          color: 'inherit',
+                        }}
+                      >
                         {task.dueDate
                           ? new Date(task.dueDate).toLocaleDateString()
                           : '-'}

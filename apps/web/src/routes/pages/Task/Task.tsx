@@ -18,6 +18,7 @@ import { FiChevronLeft } from 'react-icons/fi';
 import type { Comment, Task } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
+import { ROUTES } from '@/routes/routeTree';
 
 const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
@@ -119,7 +120,9 @@ export default function TaskPage() {
           as={FiChevronLeft}
           size="sm"
           variant="ghost"
-          onClick={() => navigate({ to: `/project/${task.projectId}` })}
+          onClick={() =>
+            navigate({ to: `${ROUTES.PROJECT}/${task.projectId}` })
+          }
         />
       </Box>
 
