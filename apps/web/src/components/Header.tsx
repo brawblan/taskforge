@@ -23,13 +23,7 @@ export default function Header() {
         alignItems="center"
       >
         <Heading size="md">
-          <InternalLink
-            href={ROUTES.HOME}
-            fontWeight="bold"
-            _hover={{ textDecorationColor: 'white' }}
-          >
-            TaskForge
-          </InternalLink>
+          <InternalLink to={ROUTES.HOME}>TaskForge</InternalLink>
         </Heading>
         <Drawer.Root
           placement="end"
@@ -62,25 +56,19 @@ export default function Header() {
                 <Drawer.Body>
                   <VStack>
                     <InternalLink
-                      href={ROUTES.DASHBOARD}
-                      fontWeight="bold"
-                      _hover={{ textDecorationColor: 'white' }}
+                      to={ROUTES.DASHBOARD}
                       onClick={() => isOpen(false)}
                     >
                       Dashboard
                     </InternalLink>
                     <InternalLink
-                      href={ROUTES.ACTIVITY_LOG}
-                      fontWeight="bold"
-                      _hover={{ textDecorationColor: 'white' }}
+                      to={ROUTES.ACTIVITY_LOG}
                       onClick={() => isOpen(false)}
                     >
                       Activity Log
                     </InternalLink>
                     <InternalLink
-                      href={ROUTES.LEARN_MORE}
-                      fontWeight="bold"
-                      _hover={{ textDecorationColor: 'white' }}
+                      to={ROUTES.LEARN_MORE}
                       onClick={() => isOpen(false)}
                     >
                       Learn More

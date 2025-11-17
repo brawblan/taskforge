@@ -1,17 +1,33 @@
+import React from 'react';
 import { Link } from '@chakra-ui/react';
-import { Link as TanstackLink } from '@tanstack/react-router';
-import type { LinkProps } from '@chakra-ui/react';
+import { createLink } from '@tanstack/react-router';
+import type { LinkComponent } from '@tanstack/react-router';
 
-export default function InternalLink({ children, ...props }: LinkProps) {
+interface ChakraLinkProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href'> {
+  // Add any additional props you want to pass to the link
+}
+
+const ChakraLinkComponent = React.forwardRef<
+  HTMLAnchorElement,
+  ChakraLinkProps
+>((props, ref) => {
+  return <Link ref={ref} {...props} />;
+});
+
+const CustomLink = createLink(ChakraLinkComponent);
+
+const InternalLink: LinkComponent<typeof ChakraLinkComponent> = (props) => {
   return (
-    <Link
-      as={TanstackLink}
-      display="inline-flex"
-      alignItems="center"
-      gap={1}
+    <CustomLink
+      _hover={{ textDecoration: 'underline', textDecorationThickness: '2px' }}
+      _focus={{ textDecoration: 'underline', textDecorationThickness: '2px' }}
+      preload={'intent'}
       {...props}
     >
-      {children}
-    </Link>
+      {props.children}
+    </CustomLink>
   );
-}
+};
+
+export default InternalLink;

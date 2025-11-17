@@ -1,34 +1,25 @@
-import {
-  Box,
-  Flex,
-  Heading,
-  Spinner,
-  Table,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Flex, Heading, Spinner, Table, Text } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import type {
-  ProjectsResponse,
-} from '@/types/dashboard';
+import type { ProjectsResponse } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { GET } from '@/utilities/fetch';
 import CreateProjectDialog from '@/components/CreateProjectDialog';
 import { EmptyState } from '@/components/EmptyState';
 import { Pagination } from '@/components/ui/pagination';
-
-export enum OVERVIEW_CARD_LABELS {
-  RECENT_PROJECTS = 'Recent Projects',
-  RECENT_TASKS = 'Recent Tasks',
-  RECENT_ACTIVITY = 'Recent Activity',
-}
+import InternalLink from '@/components/InternalLink';
+import { ROUTES } from '@/routes/routeTree';
 
 export default function Dashboard() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const { isLoading, isError, data, error } = useQuery({
+  const {
+    isLoading,
+    isError,
+    data: projects,
+    error,
+  } = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS, page],
     queryFn: async () => {
       return await GET<ProjectsResponse>(
@@ -61,7 +52,7 @@ export default function Dashboard() {
         )}
 
         {/* Data Table */}
-        {data && data.data.length ? (
+        {projects && projects.data.length ? (
           <Flex direction="column" gap={4}>
             <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
               <Table.Root variant="outline" size="md">
@@ -73,60 +64,25 @@ export default function Dashboard() {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  {data.data.map((project) => (
+                  {projects.data.map((project) => (
                     <Table.Row
                       key={project.id}
                       _hover={{
                         bg: 'gray.50',
                         _dark: { bg: 'gray.800' },
                       }}
-                      css={{
-                        '& td': {
-                          padding: 0,
-                        },
-                      }}
                     >
                       <Table.Cell fontWeight="medium">
-                        <Link
-                          to="/project/$id"
+                        <InternalLink
+                          to={ROUTES.PROJECT_ID}
                           params={{ id: project.id }}
-                          style={{
-                            display: 'block',
-                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                          }}
                         >
                           {project.name}
-                        </Link>
+                        </InternalLink>
                       </Table.Cell>
+                      <Table.Cell>{project.description ?? '-'}</Table.Cell>
                       <Table.Cell>
-                        <Link
-                          to="/project/$id"
-                          params={{ id: project.id }}
-                          style={{
-                            display: 'block',
-                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                          }}
-                        >
-                          {project.description ?? '-'}
-                        </Link>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Link
-                          to="/project/$id"
-                          params={{ id: project.id }}
-                          style={{
-                            display: 'block',
-                            padding: 'var(--chakra-space-3) var(--chakra-space-4)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                          }}
-                        >
-                          {new Date(project.updatedAt).toLocaleDateString()}
-                        </Link>
+                        {new Date(project.updatedAt).toLocaleDateString()}
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -135,15 +91,13 @@ export default function Dashboard() {
             </Box>
             <Pagination
               currentPage={page}
-              totalPages={data.meta.totalPages || 1}
+              totalPages={projects.meta.totalPages || 1}
               onPageChange={setPage}
               isLoading={isLoading}
             />
           </Flex>
         ) : (
-          !isLoading && (
-            <EmptyState type={OVERVIEW_CARD_LABELS.RECENT_PROJECTS} />
-          )
+          !isLoading && <EmptyState />
         )}
       </Flex>
     </>

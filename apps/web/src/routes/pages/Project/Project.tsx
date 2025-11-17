@@ -1,9 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Link as TanstackLink,
-  useNavigate,
-  useParams,
-} from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import {
   Box,
   Button,
@@ -25,6 +21,7 @@ import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
 import CreateTaskDialog from '@/components/CreateTaskDialog';
 import { ROUTES } from '@/routes/routeTree';
+import InternalLink from '@/components/InternalLink';
 
 const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
@@ -32,7 +29,6 @@ const DeleteIcon = () => <span>🗑️</span>;
 export default function ProjectPage() {
   const { id: projectId = '' } = useParams({ strict: false });
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -62,7 +58,7 @@ export default function ProjectPage() {
   });
 
   const { data: comments = [], refetch: refetchComments } = useQuery({
-    queryKey: ['comments', projectId],
+    queryKey: [QUERY_KEYS.COMMENTS, projectId],
     queryFn: async () => {
       return await GET<Array<Comment>>(`/comments?projectId=${projectId}`);
     },
@@ -133,13 +129,17 @@ export default function ProjectPage() {
     <Flex direction="column" p={8} gap={8}>
       {/* Back Button */}
       <Box>
-        <IconButton
+        <InternalLink
+          to={ROUTES.DASHBOARD}
+          display="inline-flex"
+          alignItems="center"
+          p={2}
+          borderRadius="md"
+          _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}
           aria-label="Back to projects"
-          as={FiChevronLeft}
-          size="sm"
-          variant="ghost"
-          onClick={() => navigate({ to: ROUTES.DASHBOARD })}
-        />
+        >
+          <FiChevronLeft />
+        </InternalLink>
       </Box>
 
       {/* Title Section */}
@@ -243,73 +243,21 @@ export default function ProjectPage() {
                       bg: 'gray.50',
                       _dark: { bg: 'gray.800' },
                     }}
-                    css={{
-                      '& td': {
-                        padding: 0,
-                      },
-                    }}
                   >
                     <Table.Cell fontWeight="medium">
-                      <TanstackLink
-                        to="/task/$id"
+                      <InternalLink
+                        to={ROUTES.TASK_ID}
                         params={{ id: task.id }}
-                        style={{
-                          display: 'block',
-                          padding:
-                            'var(--chakra-space-3) var(--chakra-space-4)',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                        }}
                       >
                         {task.title}
-                      </TanstackLink>
+                      </InternalLink>
                     </Table.Cell>
+                    <Table.Cell>{task.status}</Table.Cell>
+                    <Table.Cell>{task.priority}</Table.Cell>
                     <Table.Cell>
-                      <TanstackLink
-                        to="/task/$id"
-                        params={{ id: task.id }}
-                        style={{
-                          display: 'block',
-                          padding:
-                            'var(--chakra-space-3) var(--chakra-space-4)',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                        }}
-                      >
-                        {task.status}
-                      </TanstackLink>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <TanstackLink
-                        to="/task/$id"
-                        params={{ id: task.id }}
-                        style={{
-                          display: 'block',
-                          padding:
-                            'var(--chakra-space-3) var(--chakra-space-4)',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                        }}
-                      >
-                        {task.priority}
-                      </TanstackLink>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <TanstackLink
-                        to="/task/$id"
-                        params={{ id: task.id }}
-                        style={{
-                          display: 'block',
-                          padding:
-                            'var(--chakra-space-3) var(--chakra-space-4)',
-                          textDecoration: 'none',
-                          color: 'inherit',
-                        }}
-                      >
-                        {task.dueDate
-                          ? new Date(task.dueDate).toLocaleDateString()
-                          : '-'}
-                      </TanstackLink>
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString()
+                        : '-'}
                     </Table.Cell>
                   </Table.Row>
                 ))}

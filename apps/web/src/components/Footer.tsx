@@ -15,7 +15,7 @@ export default function Footer() {
         <Text>
           © {new Date().getFullYear()} TaskForge. All rights reserved.
         </Text>
-        <InternalLink href={ROUTES.LEARN_MORE}>Learn More</InternalLink>
+        <InternalLink to={ROUTES.LEARN_MORE}>Learn More</InternalLink>
       </Flex>
     </Box>
   );

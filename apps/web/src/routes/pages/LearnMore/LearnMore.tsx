@@ -59,7 +59,7 @@ export default function LearnMore() {
             </Text>
 
             <Box pt={4}>
-              <InternalLink href={ROUTES.HOME} fontWeight="medium">
+              <InternalLink to={ROUTES.HOME} fontWeight="medium">
                 ← Back to Home
               </InternalLink>
             </Box>
