@@ -16,7 +16,7 @@ export default function Page404() {
         Oops! This page doesn’t exist.
       </Text>
       <InternalLink
-        href={ROUTES.HOME}
+        to={ROUTES.HOME}
         color="blue.500"
         _hover={{ color: 'blue.600', textDecoration: 'underline' }}
         mt={2}

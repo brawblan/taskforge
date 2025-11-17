@@ -24,9 +24,7 @@ export const router = createRouter({
     <div>
       <h1>Error loading data!</h1>
       <p>{error.message}</p>
-      <InternalLink href={ROUTES.HOME} fontWeight="medium">
-        ← Back to Home
-      </InternalLink>
+      <InternalLink to={ROUTES.HOME}>← Back to Home</InternalLink>
     </div>
   ),
   defaultPreload: 'intent',

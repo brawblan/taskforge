@@ -13,8 +13,8 @@ import { getHealthQueryOptions } from '@/queries/health';
 export const ROUTES = Object.freeze({
   HOME: '/',
   DASHBOARD: '/dashboard',
-  PROJECT: '/project',
-  TASK: '/task',
+  PROJECT_ID: '/project/$id',
+  TASK_ID: '/task/$id',
   ACTIVITY_LOG: '/activity-log',
   LEARN_MORE: '/learn-more',
   HEALTH: '/health',
@@ -52,13 +52,13 @@ const dashboardRoute = createRoute({
 
 const projectRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: `${ROUTES.PROJECT}/$id`,
+  path: ROUTES.PROJECT_ID,
   component: ProjectPage,
 });
 
 const taskRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: `${ROUTES.TASK}/$id`,
+  path: ROUTES.TASK_ID,
   component: TaskPage,
 });
 

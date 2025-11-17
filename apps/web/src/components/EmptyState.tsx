@@ -1,24 +1,9 @@
 import { Flex, Heading, Icon, Text } from '@chakra-ui/react';
 import { FiFolderPlus } from 'react-icons/fi';
-import { OVERVIEW_CARD_LABELS } from '@/routes/pages/Dashboard/Dashboard';
 
-export function EmptyState({ type }: { type: OVERVIEW_CARD_LABELS }) {
-  const config = {
-    [OVERVIEW_CARD_LABELS.RECENT_PROJECTS]: {
-      title: 'No projects yet',
-      message: 'Create your first project to get started with TaskForge.',
-    },
-    [OVERVIEW_CARD_LABELS.RECENT_TASKS]: {
-      title: 'No recent tasks',
-      message: 'No tasks have been updated in the last 7 days.',
-    },
-    [OVERVIEW_CARD_LABELS.RECENT_ACTIVITY]: {
-      title: 'No recent activity',
-      message: 'No activity has been recorded in the last 7 days.',
-    },
-  };
-
-  const { title, message } = config[type];
+export function EmptyState() {
+  const title = 'Title';
+  const message = 'Message';
 
   return (
     <Flex

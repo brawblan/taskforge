@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import {
   Box,
   Button,
@@ -19,6 +19,7 @@ import type { Comment, Task } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
 import { ROUTES } from '@/routes/routeTree';
+import InternalLink from '@/components/InternalLink';
 
 const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
@@ -26,7 +27,6 @@ const DeleteIcon = () => <span>🗑️</span>;
 export default function TaskPage() {
   const { id: taskId } = useParams({ strict: false });
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -115,15 +115,14 @@ export default function TaskPage() {
     <Flex direction="column" p={8} gap={8}>
       {/* Back Button */}
       <Box>
-        <IconButton
+        <InternalLink
+          key={task.projectId}
+          to={ROUTES.PROJECT_ID}
+          params={{ id: task.projectId }}
           aria-label="Back to project"
-          as={FiChevronLeft}
-          size="sm"
-          variant="ghost"
-          onClick={() =>
-            navigate({ to: `${ROUTES.PROJECT}/${task.projectId}` })
-          }
-        />
+        >
+          <FiChevronLeft />
+        </InternalLink>
       </Box>
 
       {/* Title Section */}
