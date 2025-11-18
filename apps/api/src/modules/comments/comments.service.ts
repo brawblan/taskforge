@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { FilterCommentsDto } from './dto/filter-comments.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CommentsService {
@@ -23,7 +24,7 @@ export class CommentsService {
   }
 
   async findAll(filters: FilterCommentsDto) {
-    const where: any = {};
+    const where: Prisma.CommentWhereInput = {};
 
     if (filters.projectId) {
       where.projectId = filters.projectId;
@@ -56,4 +57,3 @@ export class CommentsService {
     });
   }
 }
-

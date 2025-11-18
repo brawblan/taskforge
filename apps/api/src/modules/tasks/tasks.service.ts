@@ -49,6 +49,8 @@ export class TasksService {
       status,
       priority,
       dueDate,
+      dueDateFrom,
+      dueDateTo,
       days,
       page = 1,
       limit = 10,
@@ -60,6 +62,21 @@ export class TasksService {
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (dueDate) where.dueDate = { lte: new Date(dueDate) };
+
+    // Date range filtering
+    if (dueDateFrom || dueDateTo) {
+      where.dueDate = {};
+      if (dueDateFrom) {
+        where.dueDate.gte = new Date(dueDateFrom);
+      }
+      if (dueDateTo) {
+        // Set to end of day for inclusive filtering
+        const endDate = new Date(dueDateTo);
+        endDate.setHours(23, 59, 59, 999);
+        where.dueDate.lte = endDate;
+      }
+    }
+
     if (days) {
       const timePeriodAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       where.updatedAt = { gt: timePeriodAgo };

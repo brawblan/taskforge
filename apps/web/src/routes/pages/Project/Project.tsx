@@ -8,23 +8,59 @@ import {
   Heading,
   IconButton,
   Input,
+  Select,
   Spinner,
   Table,
   Text,
   Textarea,
   VStack,
+  createListCollection,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { FiChevronLeft } from 'react-icons/fi';
-import type { Comment, Project, TasksResponse } from '@/types/dashboard';
+import { FiChevronLeft, FiX } from 'react-icons/fi';
+import type { Comment, Project, Task, TasksResponse } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
 import CreateTaskDialog from '@/components/CreateTaskDialog';
 import { ROUTES } from '@/routes/routeTree';
 import InternalLink from '@/components/InternalLink';
+import {
+  TASK_PRIORITY_LABELS,
+  TASK_STATUS_LABELS,
+  TaskPriority,
+  TaskStatus,
+} from '@/types/task';
+import { EmptyState } from '@/components/EmptyState';
 
 const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
+
+const statusCollection = createListCollection({
+  items: [
+    { label: 'All statuses', value: '' },
+    ...Object.values(TaskStatus).map((status) => ({
+      label: TASK_STATUS_LABELS[status],
+      value: status,
+    })),
+  ],
+});
+
+const priorityCollection = createListCollection({
+  items: [
+    { label: 'All priorities', value: '' },
+    ...Object.values(TaskPriority).map((priority) => ({
+      label: TASK_PRIORITY_LABELS[priority],
+      value: priority,
+    })),
+  ],
+});
+
+const sortCollection = createListCollection({
+  items: [
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Oldest First', value: 'oldest' },
+  ],
+});
 
 export default function ProjectPage() {
   const { id: projectId = '' } = useParams({ strict: false });
@@ -35,6 +71,18 @@ export default function ProjectPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [newComment, setNewComment] = useState('');
+
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [priorityFilter, setPriorityFilter] = useState<string>('');
+  const [dueDateFrom, setDueDateFrom] = useState<string>('');
+  const [dueDateTo, setDueDateTo] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+
+  // Inline editing states
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS, projectId],
@@ -47,15 +95,43 @@ export default function ProjectPage() {
     enabled: !!projectId,
   });
 
+  const hasActiveFilters =
+    statusFilter || priorityFilter || dueDateFrom || dueDateTo;
+
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
-    queryKey: [QUERY_KEYS.TASKS, projectId],
+    queryKey: [
+      QUERY_KEYS.TASKS,
+      projectId,
+      statusFilter,
+      priorityFilter,
+      dueDateFrom,
+      dueDateTo,
+    ],
     queryFn: async () => {
-      return await GET<TasksResponse>(
-        `/tasks?projectId=${projectId}&page=1&limit=100`,
-      );
+      const params = new URLSearchParams({
+        projectId,
+        page: '1',
+        limit: hasActiveFilters ? '1000' : '100',
+      });
+
+      if (statusFilter) params.append('status', statusFilter);
+      if (priorityFilter) params.append('priority', priorityFilter);
+      if (dueDateFrom) params.append('dueDateFrom', dueDateFrom);
+      if (dueDateTo) params.append('dueDateTo', dueDateTo);
+
+      return await GET<TasksResponse>(`/tasks?${params.toString()}`);
     },
     enabled: !!projectId,
   });
+
+  // Sort tasks client-side
+  const sortedTasks = tasksData?.data
+    ? [...tasksData.data].sort((a, b) => {
+        const dateA = new Date(a.dueDate || 0).getTime();
+        const dateB = new Date(b.dueDate || 0).getTime();
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      })
+    : [];
 
   const { data: comments = [], refetch: refetchComments } = useQuery({
     queryKey: [QUERY_KEYS.COMMENTS, projectId],
@@ -72,6 +148,86 @@ export default function ProjectPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.PROJECTS, projectId],
+      });
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({
+      taskId,
+      data,
+    }: {
+      taskId: string;
+      data: Partial<Task>;
+    }) => {
+      return await PATCH(`/tasks/${taskId}`, data);
+    },
+    onMutate: async ({ taskId, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: [
+          QUERY_KEYS.TASKS,
+          projectId,
+          statusFilter,
+          priorityFilter,
+          dueDateFrom,
+          dueDateTo,
+        ],
+      });
+
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData([
+        QUERY_KEYS.TASKS,
+        projectId,
+        statusFilter,
+        priorityFilter,
+        dueDateFrom,
+        dueDateTo,
+      ]);
+
+      // Optimistically update
+      queryClient.setQueryData(
+        [
+          QUERY_KEYS.TASKS,
+          projectId,
+          statusFilter,
+          priorityFilter,
+          dueDateFrom,
+          dueDateTo,
+        ],
+        (old: TasksResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: old.data.map((task) =>
+              task.id === taskId ? { ...task, ...data } : task,
+            ),
+          };
+        },
+      );
+
+      return { previousTasks };
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(
+          [
+            QUERY_KEYS.TASKS,
+            projectId,
+            statusFilter,
+            priorityFilter,
+            dueDateFrom,
+            dueDateTo,
+          ],
+          context.previousTasks,
+        );
+      }
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.TASKS, projectId],
       });
     },
   });
@@ -107,6 +263,40 @@ export default function ProjectPage() {
   const handleSaveDescription = () => {
     updateProjectMutation.mutate({ description });
     setIsEditingDescription(false);
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('');
+    setPriorityFilter('');
+    setDueDateFrom('');
+    setDueDateTo('');
+    setSortOrder('newest');
+  };
+
+  const handleStartEdit = (
+    taskId: string,
+    field: string,
+    currentValue: string,
+  ) => {
+    setEditingTaskId(taskId);
+    setEditingField(field);
+    setEditValue(currentValue);
+  };
+
+  const handleSaveEdit = (taskId: string, field: string) => {
+    updateTaskMutation.mutate({
+      taskId,
+      data: { [field]: editValue },
+    });
+    setEditingTaskId(null);
+    setEditingField(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setEditingField(null);
+    setEditValue('');
   };
 
   if (projectLoading) {
@@ -222,8 +412,152 @@ export default function ProjectPage() {
           <Heading size="md">Tasks</Heading>
           <CreateTaskDialog projectId={projectId} />
         </Flex>
+
+        {/* Filter Bar */}
+        <Box
+          p={4}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg="gray.50"
+          _dark={{ bg: 'gray.800' }}
+          mb={4}
+        >
+          <VStack align="stretch" gap={3}>
+            <HStack gap={4} wrap="wrap">
+              <Box flex="1" minW="200px">
+                <Text fontSize="sm" fontWeight="medium" mb={1}>
+                  Status
+                </Text>
+                <Select.Root
+                  collection={statusCollection}
+                  value={statusFilter ? [statusFilter] : []}
+                  onValueChange={(e) => setStatusFilter(e.value[0] || '')}
+                  size="sm"
+                >
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="All statuses" />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {statusCollection.items.map((item) => (
+                        <Select.Item key={item.value} item={item}>
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </Box>
+
+              <Box flex="1" minW="200px">
+                <Text fontSize="sm" fontWeight="medium" mb={1}>
+                  Priority
+                </Text>
+                <Select.Root
+                  collection={priorityCollection}
+                  value={priorityFilter ? [priorityFilter] : []}
+                  onValueChange={(e) => setPriorityFilter(e.value[0] || '')}
+                  size="sm"
+                >
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="All priorities" />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {priorityCollection.items.map((item) => (
+                        <Select.Item key={item.value} item={item}>
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </Box>
+
+              <Box flex="1" minW="150px">
+                <Text fontSize="sm" fontWeight="medium" mb={1}>
+                  Due Date From
+                </Text>
+                <Input
+                  type="date"
+                  size="sm"
+                  value={dueDateFrom}
+                  onChange={(e) => setDueDateFrom(e.target.value)}
+                />
+              </Box>
+
+              <Box flex="1" minW="150px">
+                <Text fontSize="sm" fontWeight="medium" mb={1}>
+                  Due Date To
+                </Text>
+                <Input
+                  type="date"
+                  size="sm"
+                  value={dueDateTo}
+                  onChange={(e) => setDueDateTo(e.target.value)}
+                />
+              </Box>
+
+              <Box flex="1" minW="150px">
+                <Text fontSize="sm" fontWeight="medium" mb={1}>
+                  Sort By
+                </Text>
+                <Select.Root
+                  collection={sortCollection}
+                  value={[sortOrder]}
+                  onValueChange={(e) =>
+                    setSortOrder(e.value[0] as 'newest' | 'oldest')
+                  }
+                  size="sm"
+                >
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {sortCollection.items.map((item) => (
+                        <Select.Item key={item.value} item={item}>
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Select.Root>
+              </Box>
+            </HStack>
+
+            {hasActiveFilters && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleClearFilters}
+                alignSelf="flex-start"
+              >
+                <FiX /> Clear Filters
+              </Button>
+            )}
+          </VStack>
+        </Box>
+
         {tasksLoading ? (
-          <Spinner />
+          <Flex justify="center" p={8}>
+            <Spinner />
+          </Flex>
         ) : tasksData && tasksData.data.length > 0 ? (
           <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
             <Table.Root variant="outline" size="md">
@@ -236,7 +570,7 @@ export default function ProjectPage() {
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {tasksData.data.map((task) => (
+                {sortedTasks.map((task) => (
                   <Table.Row
                     key={task.id}
                     _hover={{
@@ -252,12 +586,157 @@ export default function ProjectPage() {
                         {task.title}
                       </InternalLink>
                     </Table.Cell>
-                    <Table.Cell>{task.status}</Table.Cell>
-                    <Table.Cell>{task.priority}</Table.Cell>
                     <Table.Cell>
-                      {task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString()
-                        : '-'}
+                      {editingTaskId === task.id &&
+                      editingField === 'status' ? (
+                        <Box p={2}>
+                          <Select.Root
+                            collection={statusCollection}
+                            value={[editValue]}
+                            onValueChange={(e) => {
+                              setEditValue(e.value[0]);
+                              updateTaskMutation.mutate({
+                                taskId: task.id,
+                                data: { status: e.value[0] },
+                              });
+                              handleCancelEdit();
+                            }}
+                            size="sm"
+                            positioning={{ strategy: 'fixed' }}
+                          >
+                            <Select.Control>
+                              <Select.Trigger>
+                                <Select.ValueText />
+                              </Select.Trigger>
+                              <Select.IndicatorGroup>
+                                <Select.Indicator />
+                              </Select.IndicatorGroup>
+                            </Select.Control>
+                            <Select.Positioner>
+                              <Select.Content>
+                                {statusCollection.items
+                                  .filter((item) => item.value !== '')
+                                  .map((item) => (
+                                    <Select.Item key={item.value} item={item}>
+                                      <Select.ItemText>
+                                        {item.label}
+                                      </Select.ItemText>
+                                    </Select.Item>
+                                  ))}
+                              </Select.Content>
+                            </Select.Positioner>
+                          </Select.Root>
+                        </Box>
+                      ) : (
+                        <Box
+                          p={3}
+                          cursor="pointer"
+                          onClick={() =>
+                            handleStartEdit(task.id, 'status', task.status)
+                          }
+                          title="Click to edit"
+                        >
+                          {TASK_STATUS_LABELS[task.status as TaskStatus] ||
+                            task.status}
+                        </Box>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {editingTaskId === task.id &&
+                      editingField === 'priority' ? (
+                        <Box p={2}>
+                          <Select.Root
+                            collection={priorityCollection}
+                            value={[editValue]}
+                            onValueChange={(e) => {
+                              setEditValue(e.value[0]);
+                              updateTaskMutation.mutate({
+                                taskId: task.id,
+                                data: { priority: e.value[0] },
+                              });
+                              handleCancelEdit();
+                            }}
+                            size="sm"
+                            positioning={{ strategy: 'fixed' }}
+                          >
+                            <Select.Control>
+                              <Select.Trigger>
+                                <Select.ValueText />
+                              </Select.Trigger>
+                              <Select.IndicatorGroup>
+                                <Select.Indicator />
+                              </Select.IndicatorGroup>
+                            </Select.Control>
+                            <Select.Positioner>
+                              <Select.Content>
+                                {priorityCollection.items
+                                  .filter((item) => item.value !== '')
+                                  .map((item) => (
+                                    <Select.Item key={item.value} item={item}>
+                                      <Select.ItemText>
+                                        {item.label}
+                                      </Select.ItemText>
+                                    </Select.Item>
+                                  ))}
+                              </Select.Content>
+                            </Select.Positioner>
+                          </Select.Root>
+                        </Box>
+                      ) : (
+                        <Box
+                          p={3}
+                          cursor="pointer"
+                          onClick={() =>
+                            handleStartEdit(task.id, 'priority', task.priority)
+                          }
+                          title="Click to edit"
+                        >
+                          {TASK_PRIORITY_LABELS[
+                            task.priority as TaskPriority
+                          ] || task.priority}
+                        </Box>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {editingTaskId === task.id &&
+                      editingField === 'dueDate' ? (
+                        <HStack p={2}>
+                          <Input
+                            type="date"
+                            size="sm"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            autoFocus
+                            onBlur={() => handleSaveEdit(task.id, 'dueDate')}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter')
+                                handleSaveEdit(task.id, 'dueDate');
+                              if (e.key === 'Escape') handleCancelEdit();
+                            }}
+                          />
+                        </HStack>
+                      ) : (
+                        <Box
+                          p={3}
+                          cursor="pointer"
+                          onClick={() =>
+                            handleStartEdit(
+                              task.id,
+                              'dueDate',
+                              task.dueDate
+                                ? new Date(task.dueDate)
+                                    .toISOString()
+                                    .split('T')[0]
+                                : '',
+                            )
+                          }
+                          title="Click to edit"
+                        >
+                          {task.dueDate
+                            ? new Date(task.dueDate).toLocaleDateString()
+                            : '-'}
+                        </Box>
+                      )}
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -265,7 +744,24 @@ export default function ProjectPage() {
             </Table.Root>
           </Box>
         ) : (
-          <Text color="gray.500">No tasks yet</Text>
+          <EmptyState
+            icon={hasActiveFilters ? FiX : undefined}
+            title={
+              hasActiveFilters ? 'No tasks match your filters' : 'No tasks yet'
+            }
+            message={
+              hasActiveFilters
+                ? 'Try adjusting your filter criteria to see more results.'
+                : 'Create your first task to get started.'
+            }
+            action={
+              hasActiveFilters ? (
+                <Button onClick={handleClearFilters} size="sm">
+                  Clear Filters
+                </Button>
+              ) : undefined
+            }
+          />
         )}
       </Box>
 

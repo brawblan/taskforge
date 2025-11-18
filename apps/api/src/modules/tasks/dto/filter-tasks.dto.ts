@@ -37,6 +37,22 @@ export class FilterTasksDto {
   dueDate?: string;
 
   @ApiPropertyOptional({
+    example: '2025-01-01',
+    description: 'Filter tasks with due date from this date (inclusive)',
+  })
+  @IsOptional()
+  @IsDateString()
+  dueDateFrom?: string;
+
+  @ApiPropertyOptional({
+    example: '2025-12-31',
+    description: 'Filter tasks with due date until this date (inclusive)',
+  })
+  @IsOptional()
+  @IsDateString()
+  dueDateTo?: string;
+
+  @ApiPropertyOptional({
     example: 7,
     description: 'Filter tasks updated within the last N days',
   })
