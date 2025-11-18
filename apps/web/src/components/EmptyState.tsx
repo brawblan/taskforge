@@ -1,9 +1,18 @@
 import { Flex, Heading, Icon, Text } from '@chakra-ui/react';
 import { FiFolderPlus } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 
-export function EmptyState() {
-  const title = 'Title';
-  const message = 'Message';
+interface EmptyStateProps {
+  icon?: IconType;
+  title?: string;
+  message?: string;
+  action?: React.ReactNode;
+}
+
+export function EmptyState({ icon, title, message, action }: EmptyStateProps) {
+  const finalIcon = icon || FiFolderPlus;
+  const finalTitle = title || 'No items';
+  const finalMessage = message || '';
 
   return (
     <Flex
@@ -15,13 +24,14 @@ export function EmptyState() {
       py={16}
       shadow="sm"
     >
-      <Icon as={FiFolderPlus} boxSize={10} color="teal.500" mb={4} />
+      <Icon as={finalIcon} boxSize={10} color="teal.500" mb={4} />
       <Heading size="md" mb={2}>
-        {title}
+        {finalTitle}
       </Heading>
-      <Text color="gray.500" mb={6}>
-        {message}
+      <Text color="gray.500" mb={action ? 6 : 0}>
+        {finalMessage}
       </Text>
+      {action}
     </Flex>
   );
 }
