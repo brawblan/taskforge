@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import {
   Box,
@@ -7,7 +7,6 @@ import {
   HStack,
   Heading,
   IconButton,
-  Input,
   Spinner,
   Text,
   Textarea,
@@ -17,29 +16,23 @@ import { useState } from 'react';
 import { FiChevronLeft } from 'react-icons/fi';
 import type { Comment, Task } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
-import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
+import { DELETE, GET, POST } from '@/utilities/fetch';
 import { ROUTES } from '@/routes/routeTree';
 import InternalLink from '@/components/InternalLink';
+import EditTaskDialog from '@/components/EditTaskDialog';
 
-const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
 
 export default function TaskPage() {
   const { id: taskId } = useParams({ strict: false });
-  const queryClient = useQueryClient();
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [newComment, setNewComment] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data: task, isLoading: taskLoading } = useQuery({
     queryKey: [QUERY_KEYS.TASKS, taskId],
     queryFn: async () => {
       const data = await GET<Task>(`/tasks/${taskId}`);
-      setTitle(data.title);
-      setDescription(data.description || '');
       return data;
     },
     enabled: !!taskId,
@@ -51,15 +44,6 @@ export default function TaskPage() {
       return await GET<Array<Comment>>(`/comments?taskId=${taskId}`);
     },
     enabled: !!taskId,
-  });
-
-  const updateTaskMutation = useMutation({
-    mutationFn: async (data: Partial<Task>) => {
-      return await PATCH(`/tasks/${taskId}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TASKS, taskId] });
-    },
   });
 
   const addCommentMutation = useMutation({
@@ -84,16 +68,6 @@ export default function TaskPage() {
       refetchComments();
     },
   });
-
-  const handleSaveTitle = () => {
-    updateTaskMutation.mutate({ title });
-    setIsEditingTitle(false);
-  };
-
-  const handleSaveDescription = () => {
-    updateTaskMutation.mutate({ description });
-    setIsEditingDescription(false);
-  };
 
   if (taskLoading) {
     return (
@@ -127,77 +101,22 @@ export default function TaskPage() {
 
       {/* Title Section */}
       <HStack>
-        {isEditingTitle ? (
-          <>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              size="lg"
-              autoFocus
-            />
-            <Button onClick={handleSaveTitle} colorScheme="teal">
-              Save
-            </Button>
-            <Button onClick={() => setIsEditingTitle(false)} variant="ghost">
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <>
-            <Heading size="lg">{task.title}</Heading>
-            <IconButton
-              aria-label="Edit title"
-              as={EditIcon}
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsEditingTitle(true)}
-            />
-          </>
-        )}
+        <Heading size="lg">{task.title}</Heading>
       </HStack>
 
       {/* Description Section */}
       <Box>
-        {isEditingDescription ? (
-          <VStack align="stretch" gap={2}>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              autoFocus
-            />
-            <HStack>
-              <Button
-                onClick={handleSaveDescription}
-                colorScheme="teal"
-                size="sm"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => setIsEditingDescription(false)}
-                variant="ghost"
-                size="sm"
-              >
-                Cancel
-              </Button>
-            </HStack>
-          </VStack>
-        ) : (
-          <HStack align="start">
-            <Text color="gray.600" flex={1}>
-              {task.description || 'No description'}
-            </Text>
-            <IconButton
-              aria-label="Edit description"
-              as={EditIcon}
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsEditingDescription(true)}
-            />
-          </HStack>
-        )}
+        <Text color="gray.600" flex={1}>
+          {task.description || 'No description'}
+        </Text>
       </Box>
+
+      <Box>
+        <Button size="sm" onClick={() => setEditOpen(true)}>
+          Edit Task
+        </Button>
+      </Box>
+      <EditTaskDialog task={task} open={editOpen} onOpenChange={setEditOpen} />
 
       {/* Task Details */}
       <Box p={4} borderWidth="1px" borderRadius="md">

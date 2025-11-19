@@ -114,6 +114,8 @@ export class TasksService {
 
   async update(id: string, dto: UpdateTaskDto) {
     const old = await this.prisma.task.findUnique({ where: { id } });
+    if (!old) throw new NotFoundException(`Task with ID ${id} not found`);
+
     const updated = await this.prisma.task.update({
       where: { id },
       data: {
@@ -123,16 +125,53 @@ export class TasksService {
       include: { project: true },
     });
 
-    let message = 'Task updated.';
-    if (dto.status && dto.status !== old?.status) {
-      message = `Status changed from ${old?.status} → ${dto.status}.`;
+    // Build detailed change message
+    const changes: string[] = [];
+    if (dto.title !== undefined && dto.title !== old.title) {
+      changes.push(`title changed from "${old.title}" to "${dto.title}"`);
     }
+    if (dto.description !== undefined && dto.description !== old.description) {
+      changes.push(`description updated`);
+    }
+    if (dto.status && dto.status !== old.status) {
+      changes.push(`status changed from ${old.status} → ${dto.status}`);
+    }
+    if (dto.priority && dto.priority !== old.priority) {
+      changes.push(`priority changed from ${old.priority} to ${dto.priority}`);
+    }
+    if (dto.dueDate !== undefined) {
+      const oldDate = old.dueDate
+        ? new Date(old.dueDate).toISOString().split('T')[0]
+        : 'none';
+      const newDate = dto.dueDate
+        ? new Date(dto.dueDate).toISOString().split('T')[0]
+        : 'none';
+      if (oldDate !== newDate) {
+        changes.push(`due date changed from ${oldDate} to ${newDate}`);
+      }
+    }
+
+    const message = changes.length > 0 ? changes.join(', ') : 'Task updated.';
 
     await this.activity.record({
       action: TaskOperator.UPDATE,
       taskId: id,
       projectId: updated.projectId,
       message,
+      oldValue: JSON.stringify({
+        title: old.title,
+        description: old.description,
+        status: old.status,
+        priority: old.priority,
+        dueDate: old.dueDate,
+      }),
+      newValue: JSON.stringify({
+        title: updated.title,
+        description: updated.description,
+        status: updated.status,
+        priority: updated.priority,
+        dueDate: updated.dueDate,
+      }),
     });
 
     return updated;
