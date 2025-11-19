@@ -22,6 +22,7 @@ import type { Comment, Project, Task, TasksResponse } from '@/types/dashboard';
 import { QUERY_KEYS } from '@/queries/KEYS';
 import { DELETE, GET, PATCH, POST } from '@/utilities/fetch';
 import CreateTaskDialog from '@/components/CreateTaskDialog';
+import EditTaskDialog from '@/components/EditTaskDialog';
 import { ROUTES } from '@/routes/routeTree';
 import InternalLink from '@/components/InternalLink';
 import {
@@ -83,6 +84,10 @@ export default function ProjectPage() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+
+  // Dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS, projectId],
@@ -567,6 +572,7 @@ export default function ProjectPage() {
                   <Table.ColumnHeader>Status</Table.ColumnHeader>
                   <Table.ColumnHeader>Priority</Table.ColumnHeader>
                   <Table.ColumnHeader>Due Date</Table.ColumnHeader>
+                  <Table.ColumnHeader>Actions</Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -631,10 +637,19 @@ export default function ProjectPage() {
                         <Box
                           p={3}
                           cursor="pointer"
+                          tabIndex={0}
                           onClick={() =>
                             handleStartEdit(task.id, 'status', task.status)
                           }
-                          title="Click to edit"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleStartEdit(task.id, 'status', task.status);
+                            }
+                          }}
+                          title="Click or press Enter to edit"
+                          role="button"
+                          aria-label={`Edit status: ${TASK_STATUS_LABELS[task.status as TaskStatus] || task.status}`}
                         >
                           {TASK_STATUS_LABELS[task.status as TaskStatus] ||
                             task.status}
@@ -686,10 +701,23 @@ export default function ProjectPage() {
                         <Box
                           p={3}
                           cursor="pointer"
+                          tabIndex={0}
                           onClick={() =>
                             handleStartEdit(task.id, 'priority', task.priority)
                           }
-                          title="Click to edit"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleStartEdit(
+                                task.id,
+                                'priority',
+                                task.priority,
+                              );
+                            }
+                          }}
+                          title="Click or press Enter to edit"
+                          role="button"
+                          aria-label={`Edit priority: ${TASK_PRIORITY_LABELS[task.priority as TaskPriority] || task.priority}`}
                         >
                           {TASK_PRIORITY_LABELS[
                             task.priority as TaskPriority
@@ -719,6 +747,7 @@ export default function ProjectPage() {
                         <Box
                           p={3}
                           cursor="pointer"
+                          tabIndex={0}
                           onClick={() =>
                             handleStartEdit(
                               task.id,
@@ -730,13 +759,42 @@ export default function ProjectPage() {
                                 : '',
                             )
                           }
-                          title="Click to edit"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleStartEdit(
+                                task.id,
+                                'dueDate',
+                                task.dueDate
+                                  ? new Date(task.dueDate)
+                                      .toISOString()
+                                      .split('T')[0]
+                                  : '',
+                              );
+                            }
+                          }}
+                          title="Click or press Enter to edit"
+                          role="button"
+                          aria-label={`Edit due date: ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not set'}`}
                         >
                           {task.dueDate
                             ? new Date(task.dueDate).toLocaleDateString()
                             : '-'}
                         </Box>
                       )}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <IconButton
+                        aria-label="Edit task"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setEditDialogOpen(true);
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -764,6 +822,14 @@ export default function ProjectPage() {
           />
         )}
       </Box>
+
+      {selectedTask && (
+        <EditTaskDialog
+          task={selectedTask}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+        />
+      )}
 
       {/* Comments Section */}
       <Box>
