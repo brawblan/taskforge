@@ -3,6 +3,8 @@ import { useParams } from '@tanstack/react-router';
 import {
   Box,
   Button,
+  Field,
+  FieldLabel,
   Flex,
   HStack,
   Heading,
@@ -32,8 +34,8 @@ import {
   TaskStatus,
 } from '@/types/task';
 import { EmptyState } from '@/components/EmptyState';
+import EditProjectDialog from '@/components/EditProjectDialog';
 
-const EditIcon = () => <span>✏️</span>;
 const DeleteIcon = () => <span>🗑️</span>;
 
 const statusCollection = createListCollection({
@@ -67,11 +69,8 @@ export default function ProjectPage() {
   const { id: projectId = '' } = useParams({ strict: false });
   const queryClient = useQueryClient();
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [newComment, setNewComment] = useState('');
+  const [projectEditDialogOpen, setProjectEditDialogOpen] = useState(false);
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -93,8 +92,6 @@ export default function ProjectPage() {
     queryKey: [QUERY_KEYS.PROJECTS, projectId],
     queryFn: async () => {
       const data = await GET<Project>(`/projects/${projectId}`);
-      setTitle(data.name);
-      setDescription(data.description || '');
       return data;
     },
     enabled: !!projectId,
@@ -144,17 +141,6 @@ export default function ProjectPage() {
       return await GET<Array<Comment>>(`/comments?projectId=${projectId}`);
     },
     enabled: !!projectId,
-  });
-
-  const updateProjectMutation = useMutation({
-    mutationFn: async (data: Partial<Project>) => {
-      return await PATCH(`/projects/${projectId}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.PROJECTS, projectId],
-      });
-    },
   });
 
   const updateTaskMutation = useMutation({
@@ -260,16 +246,6 @@ export default function ProjectPage() {
     },
   });
 
-  const handleSaveTitle = () => {
-    updateProjectMutation.mutate({ name: title });
-    setIsEditingTitle(false);
-  };
-
-  const handleSaveDescription = () => {
-    updateProjectMutation.mutate({ description });
-    setIsEditingDescription(false);
-  };
-
   const handleClearFilters = () => {
     setStatusFilter('');
     setPriorityFilter('');
@@ -339,77 +315,26 @@ export default function ProjectPage() {
 
       {/* Title Section */}
       <HStack>
-        {isEditingTitle ? (
-          <>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              size="lg"
-              autoFocus
-            />
-            <Button onClick={handleSaveTitle} colorScheme="teal">
-              Save
-            </Button>
-            <Button onClick={() => setIsEditingTitle(false)} variant="ghost">
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <>
-            <Heading size="lg">{project.name}</Heading>
-            <IconButton
-              aria-label="Edit title"
-              as={EditIcon}
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsEditingTitle(true)}
-            />
-          </>
-        )}
+        <Heading size="lg">{project.name}</Heading>
       </HStack>
 
       {/* Description Section */}
       <Box>
-        {isEditingDescription ? (
-          <VStack align="stretch" gap={2}>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              autoFocus
-            />
-            <HStack>
-              <Button
-                onClick={handleSaveDescription}
-                colorScheme="teal"
-                size="sm"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => setIsEditingDescription(false)}
-                variant="ghost"
-                size="sm"
-              >
-                Cancel
-              </Button>
-            </HStack>
-          </VStack>
-        ) : (
-          <HStack align="start">
-            <Text color="gray.600" flex={1}>
-              {project.description || 'No description'}
-            </Text>
-            <IconButton
-              aria-label="Edit description"
-              as={EditIcon}
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsEditingDescription(true)}
-            />
-          </HStack>
-        )}
+        <Text color="gray.700" _dark={{ color: 'gray.300' }} flex={1}>
+          {project.description || 'No description'}
+        </Text>
       </Box>
+
+      <Box>
+        <Button size="sm" onClick={() => setProjectEditDialogOpen(true)}>
+          Edit Project
+        </Button>
+      </Box>
+      <EditProjectDialog
+        project={project}
+        open={projectEditDialogOpen}
+        onOpenChange={setProjectEditDialogOpen}
+      />
 
       {/* Tasks Table */}
       <Box>
@@ -425,7 +350,6 @@ export default function ProjectPage() {
           borderRadius="lg"
           bg="gray.50"
           _dark={{ bg: 'gray.800' }}
-          mb={4}
         >
           <VStack align="stretch" gap={3}>
             <HStack gap={4} wrap="wrap">
@@ -439,9 +363,14 @@ export default function ProjectPage() {
                   onValueChange={(e) => setStatusFilter(e.value[0] || '')}
                   size="sm"
                 >
+                  <Select.Label srOnly>Status Filter</Select.Label>
                   <Select.Control>
                     <Select.Trigger>
-                      <Select.ValueText placeholder="All statuses" />
+                      <Select.ValueText
+                        placeholder="All statuses"
+                        color="gray.900"
+                        _dark={{ color: 'gray.100' }}
+                      />
                     </Select.Trigger>
                     <Select.IndicatorGroup>
                       <Select.Indicator />
@@ -469,9 +398,14 @@ export default function ProjectPage() {
                   onValueChange={(e) => setPriorityFilter(e.value[0] || '')}
                   size="sm"
                 >
+                  <Select.Label srOnly>Priority Filter</Select.Label>
                   <Select.Control>
                     <Select.Trigger>
-                      <Select.ValueText placeholder="All priorities" />
+                      <Select.ValueText
+                        placeholder="All priorities"
+                        color="gray.900"
+                        _dark={{ color: 'gray.100' }}
+                      />
                     </Select.Trigger>
                     <Select.IndicatorGroup>
                       <Select.Indicator />
@@ -489,29 +423,45 @@ export default function ProjectPage() {
                 </Select.Root>
               </Box>
 
-              <Box flex="1" minW="150px">
-                <Text fontSize="sm" fontWeight="medium" mb={1}>
+              <Field.Root flex="1" minW="150px">
+                <FieldLabel
+                  fontSize="sm"
+                  fontWeight="medium"
+                  mb={1}
+                  as="label"
+                  htmlFor="dueDateFrom"
+                >
                   Due Date From
-                </Text>
+                </FieldLabel>
                 <Input
+                  id="dueDateFrom"
                   type="date"
                   size="sm"
                   value={dueDateFrom}
                   onChange={(e) => setDueDateFrom(e.target.value)}
+                  aria-label="Due date from"
                 />
-              </Box>
+              </Field.Root>
 
-              <Box flex="1" minW="150px">
-                <Text fontSize="sm" fontWeight="medium" mb={1}>
+              <Field.Root flex="1" minW="150px">
+                <FieldLabel
+                  fontSize="sm"
+                  fontWeight="medium"
+                  mb={1}
+                  as="label"
+                  htmlFor="dueDateTo"
+                >
                   Due Date To
-                </Text>
+                </FieldLabel>
                 <Input
+                  id="dueDateTo"
                   type="date"
                   size="sm"
                   value={dueDateTo}
                   onChange={(e) => setDueDateTo(e.target.value)}
+                  aria-label="Due date to"
                 />
-              </Box>
+              </Field.Root>
 
               <Box flex="1" minW="150px">
                 <Text fontSize="sm" fontWeight="medium" mb={1}>
@@ -525,13 +475,14 @@ export default function ProjectPage() {
                   }
                   size="sm"
                 >
+                  <Select.Label srOnly>Sort Order</Select.Label>
                   <Select.Control>
                     <Select.Trigger>
                       <Select.ValueText />
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
                     </Select.Trigger>
-                    <Select.IndicatorGroup>
-                      <Select.Indicator />
-                    </Select.IndicatorGroup>
                   </Select.Control>
                   <Select.Positioner>
                     <Select.Content>
@@ -793,7 +744,7 @@ export default function ProjectPage() {
                           setEditDialogOpen(true);
                         }}
                       >
-                        <EditIcon />
+                        ✏️
                       </IconButton>
                     </Table.Cell>
                   </Table.Row>

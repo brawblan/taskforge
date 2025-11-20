@@ -106,7 +106,7 @@ export default function TaskPage() {
 
       {/* Description Section */}
       <Box>
-        <Text color="gray.600" flex={1}>
+        <Text color="gray.700" _dark={{ color: 'gray.300' }} flex={1}>
           {task.description || 'No description'}
         </Text>
       </Box>

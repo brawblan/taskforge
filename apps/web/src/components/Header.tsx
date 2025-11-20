@@ -15,13 +15,8 @@ import InternalLink from '@/components/InternalLink';
 export default function Header() {
   const [open, isOpen] = useState(false);
   return (
-    <Box height="fit-content" bg="blue.900" px={4} py={4} color="white">
-      <Flex
-        height="100%"
-        width="100%"
-        justifyContent="space-between"
-        alignItems="center"
-      >
+    <Box height="fit-content" bg="blue.900" px={4} py={2} color="white">
+      <Flex justifyContent="space-between" alignItems="center">
         <Heading size="md">
           <InternalLink to={ROUTES.HOME}>TaskForge</InternalLink>
         </Heading>
@@ -32,12 +27,9 @@ export default function Header() {
         >
           <Drawer.Backdrop />
           <Drawer.Trigger asChild>
-            <IconButton
-              aria-label="Main menu"
-              as={CgToolbarRight}
-              size="2xs"
-              variant="ghost"
-            />
+            <IconButton aria-label="Main menu" size="xs" variant="ghost">
+              <CgToolbarRight />
+            </IconButton>
           </Drawer.Trigger>
           <Portal>
             <Drawer.Positioner padding="4">
@@ -45,10 +37,11 @@ export default function Header() {
                 <Drawer.CloseTrigger>
                   <IconButton
                     aria-label="Close menu"
-                    as={CgCloseO}
                     size="2xs"
                     variant="ghost"
-                  />
+                  >
+                    <CgCloseO />
+                  </IconButton>
                 </Drawer.CloseTrigger>
                 <Drawer.Header>
                   <Drawer.Title></Drawer.Title>
